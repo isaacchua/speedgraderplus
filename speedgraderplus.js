@@ -11,6 +11,7 @@ globalThis.sgp = (function(config){
 	const VERSION = "1.2.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
+	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
 	var find = true;
 	
@@ -29,6 +30,20 @@ globalThis.sgp = (function(config){
 				student.addEventListener("click", handleApplyEvent);
 			}
 		}
+	}
+
+	function getCurrentStudentId () {
+		let avatar = document.getElementById("avatar");
+		if (avatar == null) return null;
+		let img = avatar.children[0];
+		if (img == null) return null;
+		let src = img.src;
+		if (src == null) return null;
+		let match = STUDENT_ID_RE.exec(src);
+		if (match == null) return null;
+		let id = Number.parseInt(match[1]);
+		if (Number.isNaN(id)) return null;
+		return id;
 	}
 	
 	function handleApplyEvent () {

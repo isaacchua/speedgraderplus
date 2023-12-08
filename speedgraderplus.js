@@ -1,21 +1,39 @@
-// SpeedGraderPlus.js v1.2.0 (2023-11-12) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.0.0 (2023-12-07) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
-	enabled: true, // true to hide specified assignment parts, false to show everything
-	assignmentId: 0, // the assignment id
-	hideQuestions: true, // hide all questions except specified question ids
-	questionIds: [0], // the question ids to show; others will be hidden
-	hideQuestionText: true, // hides the text of the question
-	hideQuizComments: true // hides the quiz comments that follow the student's answers (not the comments panel)
+	assignments: [
+		{
+			assignmentId: 0, // the assignment id
+			profiles: [
+				{
+					name: "Profile", // name of the profile
+					enabled: true, // true to hide specified assignment parts, false to show everything
+					hideQuestions: true, // hide all questions except specified question ids
+					questionIds: [0], // the question ids to show; others will be hidden
+					hideQuestionText: true, // hides the text of the question
+					hideQuizComments: true // hides the quiz comments that follow the student's answers (not the comments panel)
+				}
+			]
+		}
+	],
 };
 globalThis.sgp = (function(config){
-	const VERSION = "1.2.0";
+	const VERSION = "2.0.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
+	const DEFAULT_PROFILE = {
+		name: "(none)",
+		enabled: false,
+		hideQuestions: false,
+		questionIds: [],
+		hideQuestionText: false,
+		hideQuizComments: false
+	};
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
-	var find = true;
+	let defaultOption;
+	let find = true;
 	
-	function bindStudents(attempts = 0) {
+	function bindStudents (attempts = 0) {
 		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
 		if (students.length === 0) { // students not yet loaded
 			if (attempts < BIND_STUDENTS_ATTEMPTS) {
@@ -57,15 +75,18 @@ globalThis.sgp = (function(config){
 				if (iframe !== null) {
 					find = false;
 					console.log("SpeedGraderPlus: speedgrader_iframe found");
-					if (iframe.getAttribute("src").includes("assignments/" + config.assignmentId)) {
-						console.log("SpeedGraderPlus: assignment " + config.assignmentId + " found");
-						iframe.contentWindow.addEventListener("load", handleIframeLoadEvent); // listen regardless, because iframe might reload
+					let iframeSrc = iframe.getAttribute("src");
+					let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId));
+					if (assignment !== undefined) {
+						console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
+						iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
+							event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
 						if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
-							checkValidIframe(iframe.contentDocument);
+							checkValidIframe(iframe.contentDocument, assignment);
 						}
 					}
 					else {
-						console.warn("SpeedGraderPlus: assignment " + config.assignmentId + " not found");
+						console.warn("SpeedGraderPlus: no assignments found");
 					}
 				}
 			}
@@ -79,43 +100,48 @@ globalThis.sgp = (function(config){
 		}
 	}
 
-	function handleIframeLoadEvent (event) {
+	function handleIframeLoadEvent (event, assignment) {
 		console.log("SpeedGraderPlus: speedgrader_iframe Window.load detected");
-		checkValidIframe(event.target);
+		checkValidIframe(event.target, assignment);
 	}
 	
-	function checkValidIframe (doc) {
+	function checkValidIframe (doc, assignment) {
 		if (doc.location.href === "about:blank") {
 			console.log("SpeedGraderPlus: speedgrader_iframe is about:blank, ignoring");
 		}
 		else {
 			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
-			applyStyles(doc);
+			applyStyles(doc, assignment);
 		}
 	}
 	
-	function applyStyles (doc) {
-		var css = "";
+	function applyStyles (doc, assignment) {
+		let profile = getProfile(assignment);
+		let css = "";
 
-		if (config.enabled) {
+		if (profile.enabled) {
 			// hide all question blocks
-			if (config.hideQuestions) {
+			if (profile.hideQuestions) {
 				css += HIDE_QUESTIONS_CSS;
 	
 				// show all selected question blocks
-				for (const questionId of config.questionIds) {
-					css += "div#question_" + questionId + ", ";
+				for (const questionId of profile.questionIds) {
+					if (typeof questionId === "object") {
+					}
+					else {
+						css += "div#question_" + questionId + ", ";
+					}
 				}
-				css += ":not(*) { display: block; } ";
+				css = css.slice(0,-2) + " { display: block; } ";
 			}
 
 			// hide question text
-			if (config.hideQuestionText) {
+			if (profile.hideQuestionText) {
 				css += "div.question_text { display: none; } ";
 			}
 
 			// hide quiz comments
-			if (config.hideQuizComments) {
+			if (profile.hideQuizComments) {
 				css += "div.quiz_comment { display: none; } ";
 			}
 
@@ -141,7 +167,74 @@ globalThis.sgp = (function(config){
 		return style;
 	}
 
+	function createDefaultOption () {
+		defaultOption = document.createElement("option");
+		defaultOption.value = "";
+		defaultOption.innerText = "(none)";
+	}
+
+	function createProfileSelector () {
+		let collection = document.getElementsByClassName("subheadContent--flex-end");
+		if (collection.length > 0) {
+			let div = document.createElement("div");
+			div.style.paddingRight = "12px";
+			let label = document.createElement("label");
+			label.innerText = "Profile:";
+			label.htmlFor = "profile";
+			let select = document.createElement("select");
+			select.id = "profile";
+			select.style.padding = "0";
+			select.style.margin = "0";
+			select.style.height = "30px";
+			select.style.width = "auto";
+			div.append(label, " ", select);
+			collection[0].prepend(div);
+			select.addEventListener("change", handleApplyEvent);
+			return select;
+		}
+		else {
+			console.log("SpeedGraderPlus: unable to find header toolbar to add selector");
+			return null;
+		}
+	}
+
+	function getProfile (assignment) {
+		if (assignment == null) {
+			console.log("SpeedGraderPlus: assignment not provided for profile");
+			return DEFAULT_PROFILE;
+		}
+		let profileSelector = document.getElementById("profile") ?? createProfileSelector();
+		if (profileSelector === null) {
+			console.log("SpeedGraderPlus: no profile selector available");
+			return DEFAULT_PROFILE;
+		}
+		else {
+			let profileValue = profileSelector.value;
+			let profiles = assignment.profiles;
+			if (!Array.isArray(profiles)) {
+				console.log("SpeedGraderPlus: profiles not configured for assignment");
+				profiles = [];
+			}
+			let profile = profiles.find(profile => profile.name === profileValue);
+			if (profile === undefined) {
+				console.log("SpeedGraderPlus: original profile not found");
+				profile = DEFAULT_PROFILE;
+				profileValue = "";
+			}
+			profileSelector.replaceChildren(defaultOption);
+			profiles.forEach(profile => {
+				let option = document.createElement("option");
+				option.value = profile.name;
+				option.innerText = profile.name;
+				profileSelector.append(option);
+			});
+			profileSelector.value = profileValue;
+			return profile;
+		}
+	}
+
 	if (document.location.href.includes("speed_grader")) {
+		createDefaultOption();
 		console.log("SpeedGraderPlus: find iframe");
 		document.getElementById("prev-student-button").addEventListener("click", handleApplyEvent);
 		document.getElementById("next-student-button").addEventListener("click", handleApplyEvent);

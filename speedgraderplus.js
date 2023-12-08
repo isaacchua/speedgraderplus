@@ -8,7 +8,7 @@ let sgpConfig = {
 				{
 					name: "Profile", // name of the profile
 					hideQuestions: true, // hide all questions except specified question ids
-					questionIds: [0], // the question ids to show; others will be hidden
+					questionIds: [0, {id: 1, exists: 2, studentIdFn: "odd"}], // the question ids to show; others will be hidden
 					hideQuestionText: true, // hides the text of the question
 					hideQuizComments: true // hides the quiz comments that follow the student's answers (not the comments panel)
 				}

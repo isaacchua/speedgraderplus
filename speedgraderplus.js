@@ -77,18 +77,27 @@ globalThis.sgp = (function(config){
 				if (iframe !== null) {
 					find = false;
 					console.log("SpeedGraderPlus: speedgrader_iframe found");
-					let iframeSrc = iframe.getAttribute("src");
-					let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId));
-					if (assignment !== undefined) {
-						console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
-						iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
-							event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
-						if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
-							checkValidIframe(iframe.contentDocument, assignment);
+					if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
+						let iframeSrc = iframe.getAttribute("src");
+						let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId));
+						if (assignment !== undefined) {
+							console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
+							iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
+								event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
+							if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
+								checkValidIframe(iframe.contentDocument, assignment);
+							}
+						}
+						else {
+							console.warn("SpeedGraderPlus: no assignments found");
 						}
 					}
-					else {
-						console.warn("SpeedGraderPlus: no assignments found");
+					else { // no configuration / not enabled
+						console.log("SpeedGraderPlus: no config or not enabled");
+						let doc = iframe.contentDocument;
+						if (doc.getElementById(STYLE_ID)) { // check whether styles exist
+							getStyles(doc).textContent = ""; // clear any applied styles
+						}
 					}
 				}
 			}
@@ -121,71 +130,64 @@ globalThis.sgp = (function(config){
 		let profile = getProfile(assignment);
 		let css = "";
 
-		// enable or disable SpeedGraderPlus
-		if (config.enabled) {
-			// hide all question blocks
-			if (profile.hideQuestions) {
-				css += HIDE_QUESTIONS_CSS;
-	
-				// show all selected question blocks
-				for (const questionId of profile.questionIds) {
-					if (typeof questionId === "object") {
-						if (questionId !== null && questionId.id) {
-							let result = true;
-							if (questionId.exists) {
-								result &&= Boolean(doc.getElementById("question_" + questionId.exists));
-							}
-							if (questionId.studentIdFn) {
-								let studentId = getCurrentStudentId();
-								console.log("SpeedGraderPlus: current student ID: " + studentId);
-								switch (typeof questionId.studentIdFn) {
-									case "string":
-										switch (questionId.studentIdFn) {
-											case "odd":
-												result &&= STUDENT_ID_FN_ODD(studentId);
-												break;
-											case "even":
-												result &&= STUDENT_ID_FN_EVEN(studentId);
-												break;
-											default:
-												result = false;
-										}
-										break;
-									case "function":
-										result &&= Boolean(questionId.studentIdFn(studentId));
-										break;
-									default:
-										result = false;
-								}
-							}
-							if (result) {
-								css += "div#question_" + questionId.id + ", ";
+		// hide all question blocks
+		if (profile.hideQuestions) {
+			css += HIDE_QUESTIONS_CSS;
+
+			// show all selected question blocks
+			for (const questionId of profile.questionIds) {
+				if (typeof questionId === "object") {
+					if (questionId !== null && questionId.id) {
+						let result = true;
+						if (questionId.exists) {
+							result &&= Boolean(doc.getElementById("question_" + questionId.exists));
+						}
+						if (questionId.studentIdFn) {
+							let studentId = getCurrentStudentId();
+							console.log("SpeedGraderPlus: current student ID: " + studentId);
+							switch (typeof questionId.studentIdFn) {
+								case "string":
+									switch (questionId.studentIdFn) {
+										case "odd":
+											result &&= STUDENT_ID_FN_ODD(studentId);
+											break;
+										case "even":
+											result &&= STUDENT_ID_FN_EVEN(studentId);
+											break;
+										default:
+											result = false;
+									}
+									break;
+								case "function":
+									result &&= Boolean(questionId.studentIdFn(studentId));
+									break;
+								default:
+									result = false;
 							}
 						}
-					}
-					else {
-						css += "div#question_" + questionId + ", ";
+						if (result) {
+							css += "div#question_" + questionId.id + ", ";
+						}
 					}
 				}
-				css = css.slice(0,-2) + " { display: block; } ";
+				else {
+					css += "div#question_" + questionId + ", ";
+				}
 			}
-
-			// hide question text
-			if (profile.hideQuestionText) {
-				css += "div.question_text { display: none; } ";
-			}
-
-			// hide quiz comments
-			if (profile.hideQuizComments) {
-				css += "div.quiz_comment { display: none; } ";
-			}
-
-			console.log("SpeedGraderPlus: applying styles: " + css);
+			css = css.slice(0,-2) + " { display: block; } ";
 		}
-		else {
-			css = "";
-			console.log("SpeedGraderPlus: disabled, clearing styles");
+
+		// hide question text
+		if (profile.hideQuestionText) {
+			css += "div.question_text { display: none; } ";
 		}
+
+		// hide quiz comments
+		if (profile.hideQuizComments) {
+			css += "div.quiz_comment { display: none; } ";
+		}
+
+		console.log("SpeedGraderPlus: applying styles: " + css);
 
 		getStyles(doc).textContent = css;
 

@@ -1,12 +1,12 @@
-// SpeedGraderPlus.js v2.0.0 (2023-12-07) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.0.0 (2023-12-08) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
+	enabled: true, // true enable SpeedGraderPlus, false to show everything
 	assignments: [
 		{
 			assignmentId: 0, // the assignment id
 			profiles: [
 				{
 					name: "Profile", // name of the profile
-					enabled: true, // true to hide specified assignment parts, false to show everything
 					hideQuestions: true, // hide all questions except specified question ids
 					questionIds: [0], // the question ids to show; others will be hidden
 					hideQuestionText: true, // hides the text of the question
@@ -21,7 +21,6 @@ globalThis.sgp = (function(config){
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
 		name: "(none)",
-		enabled: false,
 		hideQuestions: false,
 		questionIds: [],
 		hideQuestionText: false,
@@ -121,7 +120,8 @@ globalThis.sgp = (function(config){
 		let profile = getProfile(assignment);
 		let css = "";
 
-		if (profile.enabled) {
+		// enable or disable SpeedGraderPlus
+		if (config.enabled) {
 			// hide all question blocks
 			if (profile.hideQuestions) {
 				css += HIDE_QUESTIONS_CSS;

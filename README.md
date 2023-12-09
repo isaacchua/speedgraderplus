@@ -158,6 +158,9 @@ You can change the configuration by setting `sgp.config` with a new configuratio
 
 ## Versions
 
+### v2.0.1 (2023-12-09)
+- Optimized the code.
+
 ### v2.0.0 (2023-12-08)
 - Added handling for multiple assignments.
 - Added profiles for multiple configurations.

@@ -158,7 +158,7 @@ You can change the configuration by setting `sgp.config` with a new configuratio
 
 ## Versions
 
-### v2.0.0 (2023-12-07)
+### v2.0.0 (2023-12-08)
 - Added handling for multiple assignments.
 - Added profiles for multiple configurations.
 - Added logic for selecting which questions to show, including:

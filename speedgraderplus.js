@@ -1,4 +1,4 @@
-// SpeedGraderPlus.js v2.1.0 (2023-12-09) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.1.0 (2023-12-10) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus, false to show everything
 	assignments: [
@@ -33,11 +33,11 @@ globalThis.sgp = (function(config){
 		hideQuizComments: false
 	};
 	const EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
-	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
+	const HIDE_QUESTIONS_CSS = ".question { display: none; } ";
 	const MODAL_ID = "sgp_modal";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
-	const SHOW_HEADERS_CSS = "div.header { display: block !important; } ";
+	const SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -322,7 +322,7 @@ globalThis.sgp = (function(config){
 		if (!style) {
 			style = doc.createElement("style");
 			style.id = STYLE_ID;
-			doc.head.appendChild(style);
+			doc.head.append(style);
 		}
 		return style;
 	}

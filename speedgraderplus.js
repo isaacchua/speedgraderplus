@@ -1,9 +1,10 @@
-// SpeedGraderPlus.js v2.0.1 (2023-12-09) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.1.0 (2023-12-09) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus, false to show everything
 	assignments: [
 		{
 			assignmentId: 0, // the Assignment ID
+			showQuestionIds: true, // true to append Question IDs to Question headers; false otherwise
 			profiles: [
 				{
 					name: "Profile", // name of the Profile
@@ -21,7 +22,7 @@ let sgpConfig = {
 	],
 };
 globalThis.sgp = (function(config){
-	const VERSION = "2.0.1";
+	const VERSION = "2.1.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
 		name: "(none)",
@@ -32,6 +33,7 @@ globalThis.sgp = (function(config){
 	};
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
+	const QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -94,9 +96,10 @@ globalThis.sgp = (function(config){
 					}
 					else { // no configuration / not enabled
 						console.log("SpeedGraderPlus: no config or not enabled");
-						let styles = iframe.contentDocument?.getElementById(STYLE_ID);
-						if (styles) { // check whether styles exist
-							styles.textContent = ""; // clear any applied styles
+						let doc = iframe.contentDocument;
+						if (doc) {
+							hideQuestionIds(doc);
+							doc.getElementById(STYLE_ID)?.remove();
 						}
 					}
 				}
@@ -122,8 +125,35 @@ globalThis.sgp = (function(config){
 		}
 		else {
 			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
+			showQuestionIds(doc, assignment);
 			applyStyles(doc, assignment);
 		}
+	}
+
+	function showQuestionIds(doc, assignment) {
+		if (assignment.showQuestionIds) {
+			if (!doc.querySelector("."+QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
+				console.log("SpeedGraderPlus: showing question ids");
+				Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
+					.forEach(element => {
+						let span = doc.createElement("span");
+						span.className = QUESTION_ID_SELECTOR_CLASS;
+						span.textContent = " (".concat(element.parentElement.id.split("_")[1],")");
+						element.querySelector(".name").append(span);
+					})
+			}
+			else {
+				console.log("SpeedGraderPlus: question ids are already shown");
+			}
+		}
+		else {
+			hideQuestionIds(doc);
+		}
+	}
+
+	function hideQuestionIds(doc) {
+		Array.from(doc.querySelectorAll("."+QUESTION_ID_SELECTOR_CLASS)).forEach(element => element.remove());
+		console.log("SpeedGraderPlus: question ids removed");
 	}
 	
 	function applyStyles (doc, assignment) {

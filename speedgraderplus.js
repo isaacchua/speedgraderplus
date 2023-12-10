@@ -4,6 +4,7 @@ let sgpConfig = {
 	assignments: [
 		{
 			assignmentId: 0, // the Assignment ID
+			expandImages: true, // true to expand images in answers when clicked; false otherwise
 			showQuestionIds: true, // true to append Question IDs to Question headers; false otherwise
 			profiles: [
 				{
@@ -31,7 +32,9 @@ globalThis.sgp = (function(config){
 		hideQuestionText: false,
 		hideQuizComments: false
 	};
+	const EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
+	const MODAL_ID = "sgp_modal";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
 	const SHOW_HEADERS_CSS = "div.header { display: block !important; } ";
@@ -39,6 +42,7 @@ globalThis.sgp = (function(config){
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
+	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	let defaultOption;
 	let find = true;
 	
@@ -99,7 +103,9 @@ globalThis.sgp = (function(config){
 						console.log("SpeedGraderPlus: no config or not enabled");
 						let doc = iframe.contentDocument;
 						if (doc) {
+							deregisterExpandImageListeners(doc);
 							hideQuestionIds(doc);
+							doc.getElementById(MODAL_ID)?.remove();
 							doc.getElementById(STYLE_ID)?.remove();
 						}
 					}
@@ -126,9 +132,90 @@ globalThis.sgp = (function(config){
 		}
 		else {
 			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
+			registerExpandImageListeners(doc, assignment);
 			showQuestionIds(doc, assignment);
 			applyStyles(doc, assignment);
 		}
+	}
+
+	function registerExpandImageListeners (doc, assignment) {
+		deregisterExpandImageListeners(doc); // there is no easy way to check if already registered, so remove any first
+		if (assignment.expandImages) {
+			 // must add event listeners to doc or it will not work for the next student
+			if (!doc[EXPAND_IMAGE_FN_NAME]) {
+				doc[EXPAND_IMAGE_FN_NAME] = event => expandImage(event);
+			}
+			if (!doc[ZOOM_IMAGE_FN_NAME]) {
+				doc[ZOOM_IMAGE_FN_NAME] = event => zoomImage(event);
+			}
+			Array.from(doc.querySelectorAll(".answers img"))
+				.forEach(element => element.addEventListener("click", doc[EXPAND_IMAGE_FN_NAME]));
+			console.log("SpeedGraderPlus: registered expand image listeners");
+		}
+	}
+
+	function deregisterExpandImageListeners (doc) {
+		Array.from(doc.querySelectorAll(".answers img"))
+			.forEach(element => element.removeEventListener("click", doc[EXPAND_IMAGE_FN_NAME]));
+		delete doc[EXPAND_IMAGE_FN_NAME];
+		delete doc[ZOOM_IMAGE_FN_NAME];
+		console.log("SpeedGraderPlus: deregistered expand image listeners");
+	}
+
+	function expandImage (event) {
+		console.log("SpeedGraderPlus: image clicked");
+		let img = event.target.cloneNode();
+		let modal = getModal(event.view.document);
+		img.className = "";
+		img.style.display = "block";
+		img.style.width = "96%";
+		img.style.maxWidth = "none";
+		img.style.margin = "2% auto";
+		img.style.padding = "0";
+		img.style.backgroundColor = "white";
+		img.addEventListener("click", event.view.document[ZOOM_IMAGE_FN_NAME]);
+		modal.replaceChildren(img);
+		console.log("SpeedGraderPlus: showing modal: " + modal);
+		event.view.document.body.style.overflow = "hidden";
+		modal.style.display = "block";
+	}
+
+	function zoomImage (event) {
+		event.preventDefault();
+		let img = event.target;
+		let scale = img.dataset.sgpScale && Number.parseFloat(img.dataset.sgpScale) || 1;
+		scale = scale >= 4 ? 1 : scale * 2;
+		img.dataset.sgpScale = scale;
+		scale *= 96;
+		img.style.width = scale + "%";
+	}
+
+	function getModal(doc) {
+		let modal = doc.getElementById(MODAL_ID);
+		if (!modal) {
+			console.log("SpeedGraderPlus: creating new modal");
+			modal = doc.createElement("div");
+			modal.id = MODAL_ID;
+			modal.style.display = "none";
+			modal.style.position = "fixed";
+			modal.style.zIndex = "999999";
+			modal.style.left = "0";
+			modal.style.top = "0";
+			modal.style.width = "100%";
+			modal.style.height = "100%";
+			modal.style.margin = "0";
+			modal.style.padding = "0";
+			modal.style.overflow = "auto";
+			modal.style.backgroundColor = "rgba(0,0,0,0.7)";
+			modal.addEventListener("click", event => {
+				if (event.target === modal) {
+					event.target.style.display = "none";
+					event.view.document.body.style.overflow = "auto";
+				}
+			});
+			doc.body.append(modal);
+		}
+		return modal;
 	}
 
 	function showQuestionIds(doc, assignment) {

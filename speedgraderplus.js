@@ -32,18 +32,18 @@ globalThis.sgp = (function(config){
 		hideQuestionText: false,
 		hideQuizComments: false
 	};
-	const EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
 	const FIND_IFRAME_ATTEMPTS = 300;
-	const HIDE_QUESTIONS_CSS = ".question { display: none; } ";
-	const MODAL_ID = "sgp_modal";
+	const IFRAME_EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
+	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
+	const IFRAME_MODAL_ID = "sgp_modal";
+	const IFRAME_QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
+	const IFRAME_SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
+	const IFRAME_STYLE_ID = "sgp_styles";
+	const IFRAME_ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
-	const QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
-	const SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
-	const STYLE_ID = "sgp_styles";
-	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	let find = false;
 	let timeoutId;
 
@@ -120,23 +120,23 @@ globalThis.sgp = (function(config){
 		deregisterExpandImageListeners(doc); // there is no easy way to check if already registered, so remove any first
 		if (assignment.expandImages) {
 			 // must add event listeners to doc or it will not work for the next student
-			if (!doc[EXPAND_IMAGE_FN_NAME]) {
-				doc[EXPAND_IMAGE_FN_NAME] = event => expandImage(event);
+			if (!doc[IFRAME_EXPAND_IMAGE_FN_NAME]) {
+				doc[IFRAME_EXPAND_IMAGE_FN_NAME] = event => expandImage(event);
 			}
-			if (!doc[ZOOM_IMAGE_FN_NAME]) {
-				doc[ZOOM_IMAGE_FN_NAME] = event => zoomImage(event);
+			if (!doc[IFRAME_ZOOM_IMAGE_FN_NAME]) {
+				doc[IFRAME_ZOOM_IMAGE_FN_NAME] = event => zoomImage(event);
 			}
 			Array.from(doc.querySelectorAll(".answers img"))
-				.forEach(element => element.addEventListener("click", doc[EXPAND_IMAGE_FN_NAME]));
+				.forEach(element => element.addEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
 			console.log("SpeedGraderPlus: registered expand image listeners");
 		}
 	}
 
 	function deregisterExpandImageListeners (doc) {
 		Array.from(doc.querySelectorAll(".answers img"))
-			.forEach(element => element.removeEventListener("click", doc[EXPAND_IMAGE_FN_NAME]));
-		delete doc[EXPAND_IMAGE_FN_NAME];
-		delete doc[ZOOM_IMAGE_FN_NAME];
+			.forEach(element => element.removeEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
+		delete doc[IFRAME_EXPAND_IMAGE_FN_NAME];
+		delete doc[IFRAME_ZOOM_IMAGE_FN_NAME];
 		console.log("SpeedGraderPlus: deregistered expand image listeners");
 	}
 
@@ -151,7 +151,7 @@ globalThis.sgp = (function(config){
 		img.style.margin = "2% auto";
 		img.style.padding = "0";
 		img.style.backgroundColor = "white";
-		img.addEventListener("click", event.view.document[ZOOM_IMAGE_FN_NAME]);
+		img.addEventListener("click", event.view.document[IFRAME_ZOOM_IMAGE_FN_NAME]);
 		modal.replaceChildren(img);
 		console.log("SpeedGraderPlus: showing modal: " + modal);
 		event.view.document.body.style.overflow = "hidden";
@@ -169,11 +169,11 @@ globalThis.sgp = (function(config){
 	}
 
 	function getIframeModal(doc) {
-		let modal = doc.getElementById(MODAL_ID);
+		let modal = doc.getElementById(IFRAME_MODAL_ID);
 		if (!modal) {
 			console.log("SpeedGraderPlus: creating new modal");
 			modal = doc.createElement("div");
-			modal.id = MODAL_ID;
+			modal.id = IFRAME_MODAL_ID;
 			modal.style.display = "none";
 			modal.style.position = "fixed";
 			modal.style.zIndex = "999999";
@@ -198,12 +198,12 @@ globalThis.sgp = (function(config){
 
 	function showQuestionIds(doc, assignment) {
 		if (assignment.showQuestionIds) {
-			if (!doc.querySelector("."+QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
+			if (!doc.querySelector("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
 				console.log("SpeedGraderPlus: showing question ids");
 				Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
 					.forEach(element => {
 						let span = doc.createElement("span");
-						span.className = QUESTION_ID_SELECTOR_CLASS;
+						span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
 						span.textContent = " (".concat(element.parentElement.id.split("_")[1],")");
 						element.querySelector(".name").append(span);
 					})
@@ -218,7 +218,7 @@ globalThis.sgp = (function(config){
 	}
 
 	function hideQuestionIds(doc) {
-		Array.from(doc.querySelectorAll("."+QUESTION_ID_SELECTOR_CLASS)).forEach(element => element.remove());
+		Array.from(doc.querySelectorAll("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)).forEach(element => element.remove());
 		console.log("SpeedGraderPlus: question ids removed");
 	}
 	
@@ -228,12 +228,12 @@ globalThis.sgp = (function(config){
 
 		// show headers if showing question ids
 		if (assignment.showQuestionIds) {
-			css += SHOW_HEADERS_CSS;
+			css += IFRAME_SHOW_HEADERS_CSS;
 		}
 
 		// hide all question blocks
 		if (profile.hideQuestions) {
-			css += HIDE_QUESTIONS_CSS;
+			css += IFRAME_HIDE_QUESTIONS_CSS;
 
 			// show all selected question blocks
 			for (const questionId of profile.questionIds) {
@@ -296,10 +296,10 @@ globalThis.sgp = (function(config){
 	}
 
 	function getIframeStyles (doc) {
-		let style = doc.getElementById(STYLE_ID);
+		let style = doc.getElementById(IFRAME_STYLE_ID);
 		if (!style) {
 			style = doc.createElement("style");
-			style.id = STYLE_ID;
+			style.id = IFRAME_STYLE_ID;
 			doc.head.append(style);
 		}
 		return style;
@@ -426,8 +426,8 @@ globalThis.sgp = (function(config){
 		if (doc) {
 			deregisterExpandImageListeners(doc);
 			hideQuestionIds(doc);
-			doc.getElementById(MODAL_ID)?.remove();
-			doc.getElementById(STYLE_ID)?.remove();
+			doc.getElementById(IFRAME_MODAL_ID)?.remove();
+			doc.getElementById(IFRAME_STYLE_ID)?.remove();
 		}
 	}
 

@@ -33,6 +33,7 @@ globalThis.sgp = (function(config){
 		hideQuizComments: false
 	};
 	const EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
+	const FIND_IFRAME_ATTEMPTS = 300;
 	const HIDE_QUESTIONS_CSS = ".question { display: none; } ";
 	const MODAL_ID = "sgp_modal";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
@@ -43,7 +44,8 @@ globalThis.sgp = (function(config){
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
 	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
-	let find = true;
+	let find = false;
+	let timeoutId;
 	
 	function doBindStudents (bind, attempts = 0) {
 		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
@@ -84,43 +86,33 @@ globalThis.sgp = (function(config){
 		if (Number.isNaN(id)) return null;
 		return id;
 	}
-	
-	function refresh () {
-		find = true;
-	}
 
-	function findIframe () {
+	function doFindIframe (attempts = 0) {
 		try {
-			if (find) {
-				let iframe = document.getElementById("speedgrader_iframe");
-				if (iframe) {
-					find = false;
-					console.log("SpeedGraderPlus: speedgrader_iframe found");
-					if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
-						let iframeSrc = iframe.getAttribute("src");
-						let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId));
-						if (assignment) {
-							console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
-							iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
-								event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
-							if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
-								checkValidIframe(iframe.contentDocument, assignment);
-							}
-						}
-						else {
-							console.warn("SpeedGraderPlus: no assignments found");
+			let iframe = document.getElementById("speedgrader_iframe");
+			if (iframe) {
+				find = false;
+				console.log("SpeedGraderPlus: speedgrader_iframe found");
+				if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
+					let iframeSrc = iframe.getAttribute("src");
+					let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId + "/"));
+					if (assignment) {
+						console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
+						register();
+						iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
+							event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
+						if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
+							checkValidIframe(iframe.contentDocument, assignment);
 						}
 					}
-					else { // no configuration / not enabled
-						console.log("SpeedGraderPlus: no config or not enabled");
-						let doc = iframe.contentDocument;
-						if (doc) {
-							deregisterExpandImageListeners(doc);
-							hideQuestionIds(doc);
-							doc.getElementById(MODAL_ID)?.remove();
-							doc.getElementById(STYLE_ID)?.remove();
-						}
+					else { // no assignment, nothing to do
+						console.warn("SpeedGraderPlus: no assignments found");
+						deregister(iframe.contentDocument);
 					}
+				}
+				else { // no configuration / not enabled
+					console.log("SpeedGraderPlus: no config provided, not enabled, or no assignments configured");
+					deregister(iframe.contentDocument);
 				}
 			}
 		}
@@ -129,8 +121,22 @@ globalThis.sgp = (function(config){
 			throw error;
 		}
 		finally {
-			setTimeout(findIframe, 200); // ensure this always runs
+			clearTimeout(timeoutId); // ensure no other timeout is running
+			if (find) {
+				if (attempts < FIND_IFRAME_ATTEMPTS) {
+					timeoutId = setTimeout(doFindIframe, 200, attempts + 1);
+				}
+				else {
+					console.warn("SpeedGraderPlus: max attempts reached: unable to find speedgrader_iframe");
+				}
+			}
 		}
+	}
+	
+	function startFindIframe () {
+		console.log("SpeedGraderPlus: finding speedgrader_iframe");
+		find = true;
+		doFindIframe();
 	}
 
 	function handleIframeLoadEvent (event, assignment) {
@@ -359,7 +365,7 @@ globalThis.sgp = (function(config){
 			select.append(option);
 			div.append(label, " ", select);
 			collection[0].prepend(div);
-			select.addEventListener("change", refresh);
+			select.addEventListener("change", startFindIframe);
 			return select;
 		}
 		else {
@@ -407,17 +413,40 @@ globalThis.sgp = (function(config){
 		}
 	}
 
-	if (document.location.href.includes("speed_grader")) {
-		console.log("SpeedGraderPlus: find iframe");
-		document.getElementById("prev-student-button").addEventListener("click", refresh);
-		document.getElementById("next-student-button").addEventListener("click", refresh);
+	function register () {
+		document.getElementById("prev-student-button").addEventListener("click", startFindIframe);
+		document.getElementById("next-student-button").addEventListener("click", startFindIframe);
 		bindStudents();
-		setTimeout(findIframe, 200);
 	}
+
+	function deregister (doc) {
+		document.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
+		document.getElementById("next-student-button").removeEventListener("click", startFindIframe);
+		unbindStudents();
+		if (doc) {
+			deregisterExpandImageListeners(doc);
+			hideQuestionIds(doc);
+			doc.getElementById(MODAL_ID)?.remove();
+			doc.getElementById(STYLE_ID)?.remove();
+		}
+	}
+
+	function initialize () {
+		let url = new URL(document.location.href);
+		if (url.hostname.endsWith("instructure.com") && url.pathname.endsWith("speed_grader")) {
+			startFindIframe();
+		}
+		else {
+			console.error("SpeedGraderPlus: unable to start: not on Canvas LMS SpeedGrader");
+		}
+	}
+
+	// starting point
+	initialize();
 
 	return {
 		version: VERSION,
-		reapply: refresh,
+		reapply: initialize,
 		config: sgpConfig
 	};
 })(sgpConfig);

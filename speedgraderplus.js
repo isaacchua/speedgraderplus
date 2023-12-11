@@ -46,46 +46,6 @@ globalThis.sgp = (function(config){
 	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	let find = false;
 	let timeoutId;
-	
-	function doBindStudents (bind, attempts = 0) {
-		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
-		if (students.length) {
-			if (bind) {
-				students.forEach(student => student.addEventListener("click", startFindIframe));
-			}
-			else {
-				students.forEach(student => student.removeEventListener("click", startFindIframe));
-			}
-		}
-		else { // students not yet loaded
-			if (attempts < BIND_STUDENTS_ATTEMPTS) {
-				setTimeout(doBindStudents, 100, bind, attempts + 1);
-			}
-			else {
-				console.warn("SpeedGraderPlus: max attempts reached: unable to find student list");
-			}
-		}
-	}
-
-	function bindStudents () {
-		console.log("SpeedGraderPlus: adding event listeners to student list");
-		doBindStudents(true);
-	}
-
-	function unbindStudents () {
-		console.log("SpeedGraderPlus: removing event listeners from student list");
-		doBindStudents(false);
-	}
-
-	function getCurrentStudentId () {
-		let src = document.getElementById("avatar")?.children[0]?.src;
-		if (!src) return null;
-		let match = STUDENT_ID_RE.exec(src);
-		if (!match) return null;
-		let id = Number.parseInt(match[1]);
-		if (Number.isNaN(id)) return null;
-		return id;
-	}
 
 	function doFindIframe (attempts = 0) {
 		try {
@@ -152,7 +112,7 @@ globalThis.sgp = (function(config){
 			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
 			registerExpandImageListeners(doc, assignment);
 			showQuestionIds(doc, assignment);
-			applyStyles(doc, assignment);
+			applyIframeStyles(doc, assignment);
 		}
 	}
 
@@ -183,7 +143,7 @@ globalThis.sgp = (function(config){
 	function expandImage (event) {
 		console.log("SpeedGraderPlus: image clicked");
 		let img = event.target.cloneNode();
-		let modal = getModal(event.view.document);
+		let modal = getIframeModal(event.view.document);
 		img.className = "";
 		img.style.display = "block";
 		img.style.width = "96%";
@@ -208,7 +168,7 @@ globalThis.sgp = (function(config){
 		img.style.width = scale + "%";
 	}
 
-	function getModal(doc) {
+	function getIframeModal(doc) {
 		let modal = doc.getElementById(MODAL_ID);
 		if (!modal) {
 			console.log("SpeedGraderPlus: creating new modal");
@@ -262,7 +222,7 @@ globalThis.sgp = (function(config){
 		console.log("SpeedGraderPlus: question ids removed");
 	}
 	
-	function applyStyles (doc, assignment) {
+	function applyIframeStyles (doc, assignment) {
 		let profile = getProfile(assignment);
 		let css = "";
 
@@ -330,12 +290,12 @@ globalThis.sgp = (function(config){
 
 		console.log("SpeedGraderPlus: applying styles: " + css);
 
-		getStyles(doc).textContent = css;
+		getIframeStyles(doc).textContent = css;
 
 		console.log("SpeedGraderPlus: all done");
 	}
 
-	function getStyles (doc) {
+	function getIframeStyles (doc) {
 		let style = doc.getElementById(STYLE_ID);
 		if (!style) {
 			style = doc.createElement("style");
@@ -343,6 +303,46 @@ globalThis.sgp = (function(config){
 			doc.head.append(style);
 		}
 		return style;
+	}
+
+	function getCurrentStudentId () {
+		let src = document.getElementById("avatar")?.children[0]?.src;
+		if (!src) return null;
+		let match = STUDENT_ID_RE.exec(src);
+		if (!match) return null;
+		let id = Number.parseInt(match[1]);
+		if (Number.isNaN(id)) return null;
+		return id;
+	}
+	
+	function doBindStudents (bind, attempts = 0) {
+		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
+		if (students.length) {
+			if (bind) {
+				students.forEach(student => student.addEventListener("click", startFindIframe));
+			}
+			else {
+				students.forEach(student => student.removeEventListener("click", startFindIframe));
+			}
+		}
+		else { // students not yet loaded
+			if (attempts < BIND_STUDENTS_ATTEMPTS) {
+				setTimeout(doBindStudents, 100, bind, attempts + 1);
+			}
+			else {
+				console.warn("SpeedGraderPlus: max attempts reached: unable to find student list");
+			}
+		}
+	}
+
+	function bindStudents () {
+		console.log("SpeedGraderPlus: adding event listeners to student list");
+		doBindStudents(true);
+	}
+
+	function unbindStudents () {
+		console.log("SpeedGraderPlus: removing event listeners from student list");
+		doBindStudents(false);
 	}
 
 	function createProfileSelector () {

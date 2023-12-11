@@ -1,6 +1,6 @@
-// SpeedGraderPlus.js v2.1.0 (2023-12-10) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.2.0 (2023-12-11) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
-	enabled: true, // true enable SpeedGraderPlus, false to show everything
+	enabled: true, // true enable SpeedGraderPlus; false to show everything
 	expandComments: true, // true to expand comments box; false to leave unchanged
 	assignments: [
 		{
@@ -24,7 +24,7 @@ let sgpConfig = {
 	],
 };
 globalThis.sgp = (function(config){
-	const VERSION = "2.1.0";
+	const VERSION = "2.2.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
 		name: "(none)",

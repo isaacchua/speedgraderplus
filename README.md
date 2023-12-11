@@ -2,8 +2,6 @@
 
 A JavaScript module to improve SpeedGrader on Canvas LMS.
 
-Also contains CSS improvements under [css/](css/).
-
 ## Features
 
 1. Hide specific questions you do not want to see while using SpeedGrader.
@@ -27,6 +25,7 @@ SpeedGraderPlus.js is configured in the `sgpConfig` object at the start of the c
 ```
 let sgpConfig = {
 	enabled: true,
+	expandComments: true,
 	assignments: [
 		{
 			assignmentId: 0,
@@ -55,7 +54,11 @@ let sgpConfig = {
 
 ### Enable SpeedGraderPlus.js
 
-Set `enabled` to `true` if you want to use SpeedGraderPlus.js; `false` otherwise.
+Set `enabled` to `true` if you want to use SpeedGraderPlus.js; `false` otherwise. Every feature is SpeedGraderPlus will not work when disabled.
+
+### Expand Comments
+
+Set `expandComments` to `true` to expand the grader comments box to 25 lines; `false` otherwise.
 
 ### Assignments
 
@@ -182,6 +185,10 @@ Set `hideQuizComments` to `true` to hide quiz comments; `false` shows them.
 You can change the configuration by setting `sgp.config` with a new configuration object on the Browser Console, and then running the `sgp.reapply()` function to apply the changes.
 
 ## Versions
+
+### v2.2.0 (2023-12-11)
+- Integrated expand comments CSS into SpeedGraderPlus.
+- Improved reliability and resource management.
 
 ### v2.1.0 (2023-12-10)
 - Added option to show Question IDs on assignments.

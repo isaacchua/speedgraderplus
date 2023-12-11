@@ -45,21 +45,34 @@ globalThis.sgp = (function(config){
 	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	let find = true;
 	
-	function bindStudents (attempts = 0) {
+	function doBindStudents (bind, attempts = 0) {
 		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
-		if (students.length === 0) { // students not yet loaded
+		if (students.length) {
+			if (bind) {
+				students.forEach(student => student.addEventListener("click", startFindIframe));
+			}
+			else {
+				students.forEach(student => student.removeEventListener("click", startFindIframe));
+			}
+		}
+		else { // students not yet loaded
 			if (attempts < BIND_STUDENTS_ATTEMPTS) {
-				setTimeout(bindStudents, 100, attempts + 1);
+				setTimeout(doBindStudents, 100, bind, attempts + 1);
 			}
 			else {
 				console.warn("SpeedGraderPlus: max attempts reached: unable to find student list");
 			}
 		}
-		else {
-			for (const student of students) {
-				student.addEventListener("click", refresh);
-			}
-		}
+	}
+
+	function bindStudents () {
+		console.log("SpeedGraderPlus: adding event listeners to student list");
+		doBindStudents(true);
+	}
+
+	function unbindStudents () {
+		console.log("SpeedGraderPlus: removing event listeners from student list");
+		doBindStudents(false);
 	}
 
 	function getCurrentStudentId () {

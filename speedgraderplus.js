@@ -43,7 +43,6 @@ globalThis.sgp = (function(config){
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
 	const ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
-	let defaultOption;
 	let find = true;
 	
 	function bindStudents (attempts = 0) {
@@ -327,12 +326,6 @@ globalThis.sgp = (function(config){
 		return style;
 	}
 
-	function createDefaultOption () {
-		defaultOption = document.createElement("option");
-		defaultOption.value = "";
-		defaultOption.innerText = "(none)";
-	}
-
 	function createProfileSelector () {
 		let collection = document.getElementsByClassName("subheadContent--flex-end");
 		if (collection.length > 0) {
@@ -347,6 +340,10 @@ globalThis.sgp = (function(config){
 			select.style.margin = "0";
 			select.style.height = "30px";
 			select.style.width = "auto";
+			let option = document.createElement("option"); // default option
+			option.value = "";
+			option.innerText = "(none)";
+			select.append(option);
 			div.append(label, " ", select);
 			collection[0].prepend(div);
 			select.addEventListener("change", refresh);
@@ -378,7 +375,7 @@ globalThis.sgp = (function(config){
 				profileValue = "";
 			}
 			let children = [...profileSelector.children]; // pull out the children as an array for reuse
-			profileSelector.replaceChildren(defaultOption);
+			profileSelector.replaceChildren(children[0]); // replace with default option
 			profiles.forEach(profile => {
 				let option = children.find(child => child.value === profile.name && child.innerText === profile.name);
 				if (!option) {
@@ -398,7 +395,6 @@ globalThis.sgp = (function(config){
 	}
 
 	if (document.location.href.includes("speed_grader")) {
-		createDefaultOption();
 		console.log("SpeedGraderPlus: find iframe");
 		document.getElementById("prev-student-button").addEventListener("click", refresh);
 		document.getElementById("next-student-button").addEventListener("click", refresh);

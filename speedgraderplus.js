@@ -121,23 +121,20 @@ globalThis.sgp = (function(config){
 		}
 	}
 
-	function registerExpandImageListeners (doc, assignment) {
-		deregisterExpandImageListeners(doc); // there is no easy way to check if already registered, so remove any first
-		if (assignment.expandImages) {
-			 // must add event listeners to doc or it will not work for the next student
-			if (!doc[IFRAME_EXPAND_IMAGE_FN_NAME]) {
-				doc[IFRAME_EXPAND_IMAGE_FN_NAME] = event => expandImage(event);
-			}
-			if (!doc[IFRAME_ZOOM_IMAGE_FN_NAME]) {
-				doc[IFRAME_ZOOM_IMAGE_FN_NAME] = event => zoomImage(event);
-			}
-			Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
-				.forEach(element => element.addEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
-			console.log("SpeedGraderPlus: registered expand image listeners");
+	function applyExpandImages (doc, assignment) {
+			// must add event listeners to doc or it will not work for the next student
+		if (!doc[IFRAME_EXPAND_IMAGE_FN_NAME]) {
+			doc[IFRAME_EXPAND_IMAGE_FN_NAME] = event => handleExpandImage(event);
 		}
+		if (!doc[IFRAME_ZOOM_IMAGE_FN_NAME]) {
+			doc[IFRAME_ZOOM_IMAGE_FN_NAME] = event => handleZoomImage(event);
+		}
+		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
+			.forEach(element => element.addEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
+		console.log("SpeedGraderPlus: registered expand image listeners");
 	}
 
-	function deregisterExpandImageListeners (doc) {
+	function unapplyExpandImages (doc) {
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
 			.forEach(element => element.removeEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
 		delete doc[IFRAME_EXPAND_IMAGE_FN_NAME];
@@ -146,7 +143,7 @@ globalThis.sgp = (function(config){
 		console.log("SpeedGraderPlus: deregistered expand image listeners");
 	}
 
-	function expandImage (event) {
+	function handleExpandImage (event) {
 		console.log("SpeedGraderPlus: image clicked");
 		let img = event.target.cloneNode();
 		let modal = getIframeModal(event.view.document);
@@ -164,7 +161,7 @@ globalThis.sgp = (function(config){
 		modal.style.display = "block";
 	}
 
-	function zoomImage (event) {
+	function handleZoomImage (event) {
 		event.preventDefault();
 		let img = event.target;
 		let scale = img.dataset.sgpScale && Number.parseFloat(img.dataset.sgpScale) || 1;
@@ -322,13 +319,13 @@ globalThis.sgp = (function(config){
 	}
 
 	function registerIframe (doc, assignment) {
-		registerExpandImageListeners(doc, assignment);
+		assignment.expandImages ? applyExpandImages(doc, assignment) : unapplyExpandImages(doc);
 		showQuestionIds(doc, assignment);
 		applyIframeStyles(doc, assignment);
 	}
 
 	function deregisterIframe (doc) {
-		deregisterExpandImageListeners(doc);
+		unapplyExpandImages(doc);
 		hideQuestionIds(doc);
 		unapplyIframeStyles(doc);
 	}

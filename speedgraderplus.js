@@ -199,28 +199,23 @@ globalThis.sgp = (function(config){
 		return modal;
 	}
 
-	function showQuestionIds(doc, assignment) {
-		if (assignment.showQuestionIds) {
-			if (!doc.querySelector("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
-				console.log("SpeedGraderPlus: showing question ids");
-				Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
-					.forEach(element => {
-						let span = doc.createElement("span");
-						span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
-						span.textContent = " (".concat(element.parentElement.id.split("_")[1],")");
-						element.querySelector(".name").append(span);
-					})
-			}
-			else {
-				console.log("SpeedGraderPlus: question ids are already shown");
-			}
+	function applyShowQuestionIds(doc, assignment) {
+		if (!doc.querySelector("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
+			console.log("SpeedGraderPlus: showing question ids");
+			Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
+				.forEach(element => {
+					let span = doc.createElement("span");
+					span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
+					span.textContent = " (".concat(element.parentElement.id.split("_")[1],")");
+					element.querySelector(".name").append(span);
+				})
 		}
 		else {
-			hideQuestionIds(doc);
+			console.log("SpeedGraderPlus: question ids are already shown");
 		}
 	}
 
-	function hideQuestionIds(doc) {
+	function unapplyShowQuestionIds(doc) {
 		Array.from(doc.querySelectorAll("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)).forEach(element => element.remove());
 		console.log("SpeedGraderPlus: question ids removed");
 	}
@@ -320,13 +315,13 @@ globalThis.sgp = (function(config){
 
 	function registerIframe (doc, assignment) {
 		assignment.expandImages ? applyExpandImages(doc, assignment) : unapplyExpandImages(doc);
-		showQuestionIds(doc, assignment);
-		applyIframeStyles(doc, assignment);
+		assignment.showQuestionIds ? applyShowQuestionIds(doc, assignment) : unapplyShowQuestionIds(doc);
+		applyIframeStyles(doc, assignment); // handles styles for all submodules
 	}
 
 	function deregisterIframe (doc) {
 		unapplyExpandImages(doc);
-		hideQuestionIds(doc);
+		unapplyShowQuestionIds(doc);
 		unapplyIframeStyles(doc);
 	}
 

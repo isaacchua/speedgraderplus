@@ -142,6 +142,7 @@ globalThis.sgp = (function(config){
 			.forEach(element => element.removeEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
 		delete doc[IFRAME_EXPAND_IMAGE_FN_NAME];
 		delete doc[IFRAME_ZOOM_IMAGE_FN_NAME];
+		doc.getElementById(IFRAME_MODAL_ID)?.remove();
 		console.log("SpeedGraderPlus: deregistered expand image listeners");
 	}
 
@@ -306,6 +307,10 @@ globalThis.sgp = (function(config){
 		console.log("SpeedGraderPlus: all done");
 	}
 
+	function unapplyIframeStyles (doc) {
+		doc.getElementById(IFRAME_STYLE_ID)?.remove();
+	}
+
 	function getIframeStyles (doc) {
 		let style = doc.getElementById(IFRAME_STYLE_ID);
 		if (!style) {
@@ -433,6 +438,10 @@ globalThis.sgp = (function(config){
 		}
 	}
 
+	function unapplyStyles () {
+		document.getElementById(STYLE_ID)?.remove();
+	}
+
 	function getStyles () {
 		let style = document.getElementById(STYLE_ID);
 		if (!style) {
@@ -456,12 +465,11 @@ globalThis.sgp = (function(config){
 		document.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
 		document.getElementById("next-student-button").removeEventListener("click", startFindIframe);
 		unbindStudents();
-		document.getElementById(STYLE_ID)?.remove();
+		unapplyStyles();
 		if (doc) {
 			deregisterExpandImageListeners(doc);
 			hideQuestionIds(doc);
-			doc.getElementById(IFRAME_MODAL_ID)?.remove();
-			doc.getElementById(IFRAME_STYLE_ID)?.remove();
+			unapplyIframeStyles(doc);
 		}
 	}
 

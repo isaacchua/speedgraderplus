@@ -7,6 +7,7 @@ let sgpConfig = {
 			assignmentId: 0, // the Assignment ID
 			expandImages: true, // true to expand images in answers when clicked; false otherwise
 			showQuestionIds: true, // true to append Question IDs to Question headers; false otherwise
+			autosaveScores: true, // true to autosave scores after changing them; false otherwise
 			profiles: [
 				{
 					name: "Profile", // name of the Profile
@@ -156,6 +157,21 @@ globalThis.sgp = (function(topWin, topDoc, config){
 			console.log(`SpeedGraderPlus: speedgrader_iframe loaded: ${doc.location.href}`);
 			registerIframe(doc, assignment);
 		}
+	}
+
+	function applyAutosaveScores (doc) {
+		doc.sgp.scoreChangeHandler = event => handleScoreChange(event, doc.sgp.form);
+		doc.querySelectorAll("input[id^='question_score_']").forEach(input => input.addEventListener("change", doc.sgp.scoreChangeHandler));
+		console.log("SpeedGraderPlus: applied autosaveScores");
+	}
+
+	function unapplyAutosaveScores (doc) {
+		doc.querySelectorAll("input[id^='question_score_']").forEach(input => input.removeEventListener("change", doc.sgp.scoreChangeHandler));
+		console.log("SpeedGraderPlus: unapplied autosaveScores");
+	}
+
+	function handleScoreChange (event, form) {
+		form.requestSubmit(); // will fire submit event
 	}
 
 	function applyExpandImages (doc) {
@@ -351,6 +367,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		doc.sgp = data;
 
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
+		assignment.autosaveScores ? applyAutosaveScores(doc) : unapplyAutosaveScores(doc);
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
 
@@ -361,6 +378,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		doc.sgp.form.removeEventListener("submit", doc.sgp.submitHandler);
 		doc.querySelectorAll("input[id^='question_score_']").forEach(input => input.removeEventListener("keyup", doc.sgp.scoreEnterHandler));
 
+		unapplyAutosaveScores(doc);
 		unapplyExpandImages(doc);
 		unapplyShowQuestionIds(doc);
 		unapplyIframeStyles(doc);

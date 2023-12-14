@@ -23,7 +23,7 @@ let sgpConfig = {
 		}
 	],
 };
-globalThis.sgp = (function(topDoc, config){
+globalThis.sgp = (function(topWin, topDoc, config){
 	const VERSION = "2.2.0";
 	const ADD_STUDENT_LIST_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
@@ -471,4 +471,4 @@ globalThis.sgp = (function(topDoc, config){
 		initialize: initialize,
 		config: config
 	};
-})(globalThis.document, sgpConfig);
+})(globalThis, globalThis.document, sgpConfig);

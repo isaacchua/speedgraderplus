@@ -127,7 +127,7 @@ globalThis.sgp = (function(topDoc, config){
 		doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME] = event => handleZoomImage(event);
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
 			.forEach(element => element.addEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME]));
-		console.log("SpeedGraderPlus: registered expand image listeners");
+		console.log("SpeedGraderPlus: applied expandImages");
 	}
 
 	function unapplyExpandImages (doc) {
@@ -136,7 +136,7 @@ globalThis.sgp = (function(topDoc, config){
 		delete doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME];
 		delete doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME];
 		doc.getElementById(IFRAME_MODAL_ID)?.remove();
-		console.log("SpeedGraderPlus: deregistered expand image listeners");
+		console.log("SpeedGraderPlus: unapplied expandImages");
 	}
 
 	function handleExpandImage (event) {

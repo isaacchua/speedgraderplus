@@ -33,18 +33,21 @@ globalThis.sgp = (function(topDoc, config){
 		hideQuestionText: false,
 		hideQuizComments: false
 	};
-	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; }";
+	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; } ";
 	const FIND_IFRAME_ATTEMPTS = 300;
 	const IFRAME_EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
-	const IFRAME_EXPAND_IMAGE_HIDE_BLANK_IMAGES_CSS = ".answers img:not([src]) { display: none; }";
+	const IFRAME_EXPAND_IMAGE_CSS = ".answers img:not([src]) { display: none; } ";
 	const IFRAME_EXPAND_IMAGE_SELECTOR = ".answers img[src]";
 	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
 	const IFRAME_MODAL_ID = "sgp_modal";
+	const IFRAME_MODAL_CSS = "#sgp_modal { display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: auto; background-color: rgba(0,0,0,0.7) } ";
+	const IFRAME_MODAL_IMG_CSS = "#sgp_modal img { display: block; width: 96%; max-width: none; margin: 2% auto; padding: 0; background-color: white; } ";
 	const IFRAME_QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
 	const IFRAME_SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
 	const IFRAME_STYLE_ID = "sgp_styles";
 	const IFRAME_ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
+	const PROFILE_SELECTOR_CSS = "#sgp_profiles { padding: 0; margin: 0; height: 30px; width: auto } ";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -143,13 +146,8 @@ globalThis.sgp = (function(topDoc, config){
 		console.log("SpeedGraderPlus: image clicked");
 		let img = event.target.cloneNode();
 		let modal = getIframeModal(event.view.document);
-		img.className = "";
-		img.style.display = "block";
-		img.style.width = "96%";
-		img.style.maxWidth = "none";
-		img.style.margin = "2% auto";
-		img.style.padding = "0";
-		img.style.backgroundColor = "white";
+		img.removeAttribute("class");
+		img.removeAttribute("style");
 		img.addEventListener("click", event.view.document.sgp[IFRAME_ZOOM_IMAGE_FN_NAME]);
 		modal.replaceChildren(img);
 		console.log(`SpeedGraderPlus: showing modal: ${modal}`);
@@ -173,17 +171,6 @@ globalThis.sgp = (function(topDoc, config){
 			console.log("SpeedGraderPlus: creating new modal");
 			modal = doc.createElement("div");
 			modal.id = IFRAME_MODAL_ID;
-			modal.style.display = "none";
-			modal.style.position = "fixed";
-			modal.style.zIndex = "999999";
-			modal.style.left = "0";
-			modal.style.top = "0";
-			modal.style.width = "100%";
-			modal.style.height = "100%";
-			modal.style.margin = "0";
-			modal.style.padding = "0";
-			modal.style.overflow = "auto";
-			modal.style.backgroundColor = "rgba(0,0,0,0.7)";
 			modal.addEventListener("click", event => {
 				if (event.target === modal) {
 					event.target.style.display = "none";
@@ -218,7 +205,9 @@ globalThis.sgp = (function(topDoc, config){
 		// hide blank images, which result from Canvas editor saving loading screens
 		// these blank images could block functionality
 		if (assignment.expandImages) {
-			css += IFRAME_EXPAND_IMAGE_HIDE_BLANK_IMAGES_CSS;
+			css += IFRAME_EXPAND_IMAGE_CSS;
+			css += IFRAME_MODAL_CSS;
+			css += IFRAME_MODAL_IMG_CSS;
 		}
 
 		// show headers if showing question ids
@@ -306,10 +295,10 @@ globalThis.sgp = (function(topDoc, config){
 
 	function registerIframe (doc, assignment) {
 		doc.sgp = {}; // object in the iframe document to store SpeedGraderPlus data
+		applyIframeStyles(doc, assignment); // handles styles for all submodules
 		assignment.autoSaveScores ? applyAutoSaveScores(doc) : unapplyAutoSaveScores(doc);
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
-		applyIframeStyles(doc, assignment); // handles styles for all submodules
 	}
 
 	function deregisterIframe (doc) {
@@ -373,10 +362,6 @@ globalThis.sgp = (function(topDoc, config){
 			label.htmlFor = PROFILE_SELECTOR_ID;
 			let select = topDoc.createElement("select");
 			select.id = PROFILE_SELECTOR_ID;
-			select.style.padding = "0";
-			select.style.margin = "0";
-			select.style.height = "30px";
-			select.style.width = "auto";
 			let option = topDoc.createElement("option"); // default option
 			option.value = "";
 			option.innerText = "(none)";
@@ -432,12 +417,11 @@ globalThis.sgp = (function(topDoc, config){
 	}
 
 	function applyStyles () {
+		let css = PROFILE_SELECTOR_CSS;
 		if (config.expandComments) {
-			getStyles().textContent = EXPAND_COMMENTS_CSS;
+			css += EXPAND_COMMENTS_CSS;
 		}
-		else {
-			getStyles().textContent = "";
-		}
+		getStyles().textContent = css;
 	}
 
 	function unapplyStyles () {
@@ -456,8 +440,8 @@ globalThis.sgp = (function(topDoc, config){
 
 	function register () {
 		console.log("SpeedGraderPlus: registering plug-in");
-		applyStudentListeners();
 		applyStyles();
+		applyStudentListeners();
 	}
 
 	function deregister () {

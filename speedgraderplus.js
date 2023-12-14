@@ -183,12 +183,15 @@ globalThis.sgp = (function(topDoc, config){
 	}
 
 	function applyShowQuestionIds(doc) {
-		Array.from(doc.querySelectorAll(`.question .name:not(:has(${IFRAME_QUESTION_ID_SELECTOR_CLASS}))`))
-			.forEach(element => {
-				let span = doc.createElement("span");
-				span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
-				span.textContent = ` (${element.parentElement.id.split("_")[1]})`;
-				element.append(span);
+		Array.from(doc.querySelectorAll(`.question:not(:has(.${IFRAME_QUESTION_ID_SELECTOR_CLASS}))`))
+			.forEach(question => {
+				let name = question.querySelector(".name");
+				if (name) {
+					let span = doc.createElement("span");
+					span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
+					span.textContent = ` (${question.id.split("_")[1]})`;
+					name.append(span);
+				}
 			})
 		console.log("SpeedGraderPlus: applied showQuestionIds");
 	}

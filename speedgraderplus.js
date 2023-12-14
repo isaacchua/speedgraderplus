@@ -25,7 +25,7 @@ let sgpConfig = {
 };
 globalThis.sgp = (function(topDoc, config){
 	const VERSION = "2.2.0";
-	const BIND_STUDENTS_ATTEMPTS = 200;
+	const ADD_STUDENT_LIST_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
 		name: "(none)",
 		hideQuestions: false,
@@ -329,10 +329,10 @@ globalThis.sgp = (function(topDoc, config){
 		return id;
 	}
 	
-	function doBindStudents (bind, attempts = 0) {
+	function applyStudentListListeners (add, attempts = 0) {
 		let students = topDoc.querySelectorAll("ul#students_selectmenu-menu a");
 		if (students.length) {
-			if (bind) {
+			if (add) {
 				students.forEach(student => student.addEventListener("click", startFindIframe));
 			}
 			else {
@@ -340,8 +340,8 @@ globalThis.sgp = (function(topDoc, config){
 			}
 		}
 		else { // students not yet loaded
-			if (attempts < BIND_STUDENTS_ATTEMPTS) {
-				setTimeout(doBindStudents, 100, bind, attempts + 1);
+			if (attempts < ADD_STUDENT_LIST_ATTEMPTS) {
+				setTimeout(applyStudentListListeners, 100, add, attempts + 1);
 			}
 			else {
 				console.warn("SpeedGraderPlus: max attempts reached: unable to find student list");
@@ -349,14 +349,18 @@ globalThis.sgp = (function(topDoc, config){
 		}
 	}
 
-	function bindStudents () {
-		console.log("SpeedGraderPlus: adding event listeners to student list");
-		doBindStudents(true);
+	function applyStudentListeners () {
+		topDoc.getElementById("prev-student-button")?.addEventListener("click", startFindIframe);
+		topDoc.getElementById("next-student-button")?.addEventListener("click", startFindIframe);
+		applyStudentListListeners(true);
+		console.log("SpeedGraderPlus: applied student event listeners");
 	}
 
-	function unbindStudents () {
-		console.log("SpeedGraderPlus: removing event listeners from student list");
-		doBindStudents(false);
+	function unapplyStudentListeners () {
+		topDoc.getElementById("prev-student-button")?.removeEventListener("click", startFindIframe);
+		topDoc.getElementById("next-student-button")?.removeEventListener("click", startFindIframe);
+		applyStudentListListeners(false);
+		console.log("SpeedGraderPlus: unapplied student event listeners");
 	}
 
 	function createProfileSelector () {
@@ -452,17 +456,13 @@ globalThis.sgp = (function(topDoc, config){
 
 	function register () {
 		console.log("SpeedGraderPlus: registering plug-in");
-		topDoc.getElementById("prev-student-button").addEventListener("click", startFindIframe);
-		topDoc.getElementById("next-student-button").addEventListener("click", startFindIframe);
-		bindStudents();
+		applyStudentListeners();
 		applyStyles();
 	}
 
 	function deregister () {
 		console.log("SpeedGraderPlus: deregistering plug-in");
-		topDoc.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
-		topDoc.getElementById("next-student-button").removeEventListener("click", startFindIframe);
-		unbindStudents();
+		unapplyStudentListeners();
 		unapplyStyles();
 	}
 

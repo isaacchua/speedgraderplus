@@ -52,6 +52,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_top_styles";
+	const SUBMIT_ATTEMPTS = 20;
 	let find = false;
 	let timeoutId;
 
@@ -107,6 +108,39 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		console.log("SpeedGraderPlus: finding speedgrader_iframe");
 		find = true;
 		setTimeout(doFindIframe, 1); // yield to let other parts of the document / iframe load
+	}
+
+	function findAssignment (iframe, attempts = 0) { // note: to be called moments after detecting that the iframe is going to load
+		iframe ||= topDoc.getElementById("speedgrader_iframe");
+		if (iframe.contentDocument?.sgp?.submitting) { // check if the iframe's form is submitted but not yet reloaded
+			if (attempts < SUBMIT_ATTEMPTS) {
+				setTimeout(findAssignment, 1000, iframe, attempts + 1);
+			}
+			return;
+		}
+		if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
+			let iframeSrc = iframe.getAttribute("src");
+			let assignment = config.assignments.find(assignment => iframeSrc.includes(`assignments/${assignment.assignmentId}/`));
+			if (assignment) {
+				console.log(`SpeedGraderPlus: assignment ${assignment.assignmentId} found`);
+				register();
+				iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
+					event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
+				if (iframe.contentDocument.readyState === "complete") { // iframe might already be loaded
+					checkValidIframe(iframe.contentDocument, assignment);
+				}
+			}
+			else { // no assignment, nothing to do
+				console.warn("SpeedGraderPlus: no assignments found");
+				deregister();
+				deregisterIframe(iframe.contentDocument);
+			}
+		}
+		else { // no configuration / not enabled
+			console.log("SpeedGraderPlus: no config provided, not enabled, or no assignments configured");
+			deregister();
+			deregisterIframe(iframe.contentDocument);
+		}
 	}
 
 	function handleIframeLoadEvent (event, assignment) {
@@ -296,8 +330,18 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		return style;
 	}
 
+	function handleSubmit (event, data) {
+		data.submitting = true; // indicator to tell that the frame is still loading, though it's possible that submit is blocked thereafter
+		topWin.setTimeout(findAssignment, 1000); // yield to let the iframe reload
+	}
+
 	function registerIframe (doc, assignment) {
-		doc.sgp = {}; // object in the iframe document to store SpeedGraderPlus data
+		let data = {}; // object in the iframe document to store SpeedGraderPlus data
+		data.submitHandler = event => handleSubmit(event, data);
+		data.form = doc.getElementById("update_history_form");
+		data.form.addEventListener("submit", data.submitHandler);
+		doc.sgp = data;
+
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
@@ -306,9 +350,12 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	}
 
 	function deregisterIframe (doc) {
+		doc.sgp.form.removeEventListener("submit", doc.sgp.submitHandler);
+
 		unapplyExpandImages(doc);
 		unapplyShowQuestionIds(doc);
 		unapplyIframeStyles(doc);
+
 		delete doc.sgp;
 
 		console.log("SpeedGraderPlus: iframe deregistered");

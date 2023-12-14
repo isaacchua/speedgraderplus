@@ -25,7 +25,7 @@ let sgpConfig = {
 };
 globalThis.sgp = (function(topWin, topDoc, config){
 	const VERSION = "2.2.0";
-	const ADD_STUDENT_LIST_ATTEMPTS = 200;
+	const ADD_STUDENT_LIST_ATTEMPTS = 20;
 	const DEFAULT_PROFILE = {
 		name: "(none)",
 		hideQuestions: false,
@@ -332,7 +332,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		}
 		else { // students not yet loaded
 			if (attempts < ADD_STUDENT_LIST_ATTEMPTS) {
-				setTimeout(applyStudentListListeners, 100, add, attempts + 1);
+				setTimeout(applyStudentListListeners, 1000, add, attempts + 1);
 			}
 			else {
 				console.warn("SpeedGraderPlus: max attempts reached: unable to find student list");

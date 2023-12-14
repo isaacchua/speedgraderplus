@@ -121,7 +121,7 @@ globalThis.sgp = (function(config){
 		}
 	}
 
-	function applyExpandImages (doc, assignment) {
+	function applyExpandImages (doc) {
 			// must add event listeners to doc or it will not work for the next student
 		if (!doc[IFRAME_EXPAND_IMAGE_FN_NAME]) {
 			doc[IFRAME_EXPAND_IMAGE_FN_NAME] = event => handleExpandImage(event);
@@ -199,7 +199,7 @@ globalThis.sgp = (function(config){
 		return modal;
 	}
 
-	function applyShowQuestionIds(doc, assignment) {
+	function applyShowQuestionIds(doc) {
 		if (!doc.querySelector("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
 			console.log("SpeedGraderPlus: showing question ids");
 			Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
@@ -314,8 +314,8 @@ globalThis.sgp = (function(config){
 	}
 
 	function registerIframe (doc, assignment) {
-		assignment.expandImages ? applyExpandImages(doc, assignment) : unapplyExpandImages(doc);
-		assignment.showQuestionIds ? applyShowQuestionIds(doc, assignment) : unapplyShowQuestionIds(doc);
+		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
+		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
 	}
 

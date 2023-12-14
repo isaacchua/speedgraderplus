@@ -222,6 +222,10 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		if (profile.hideQuestions) {
 			css += IFRAME_HIDE_QUESTIONS_CSS;
 
+			// get current student ID
+			let studentId = getCurrentStudentId();
+			console.log(`SpeedGraderPlus: current student ID: ${studentId}`);
+
 			// show all selected question blocks
 			for (const questionId of profile.questionIds) {
 				if (typeof questionId === "object") {
@@ -231,8 +235,6 @@ globalThis.sgp = (function(topWin, topDoc, config){
 							result &&= Boolean(doc.getElementById(`question_${questionId.exists}`));
 						}
 						if (questionId.studentIdFn) {
-							let studentId = getCurrentStudentId();
-							console.log(`SpeedGraderPlus: current student ID: ${studentId}`);
 							switch (typeof questionId.studentIdFn) {
 								case "string":
 									switch (questionId.studentIdFn) {

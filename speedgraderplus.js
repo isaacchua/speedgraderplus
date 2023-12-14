@@ -299,7 +299,6 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	function registerIframe (doc, assignment) {
 		doc.sgp = {}; // object in the iframe document to store SpeedGraderPlus data
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
-		assignment.autoSaveScores ? applyAutoSaveScores(doc) : unapplyAutoSaveScores(doc);
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
 	}

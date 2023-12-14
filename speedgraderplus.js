@@ -60,9 +60,9 @@ globalThis.sgp = (function(topDoc, config){
 				console.log("SpeedGraderPlus: speedgrader_iframe found");
 				if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
 					let iframeSrc = iframe.getAttribute("src");
-					let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId + "/"));
+					let assignment = config.assignments.find(assignment => iframeSrc.includes(`assignments/${assignment.assignmentId}/`));
 					if (assignment) {
-						console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
+						console.log(`SpeedGraderPlus: assignment ${assignment.assignmentId} found`);
 						register();
 						iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
 							event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
@@ -116,7 +116,7 @@ globalThis.sgp = (function(topDoc, config){
 			console.log("SpeedGraderPlus: speedgrader_iframe is about:blank, ignoring");
 		}
 		else {
-			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
+			console.log(`SpeedGraderPlus: speedgrader_iframe loaded: ${doc.location.href}`);
 			registerIframe(doc, assignment);
 		}
 	}
@@ -152,7 +152,7 @@ globalThis.sgp = (function(topDoc, config){
 		img.style.backgroundColor = "white";
 		img.addEventListener("click", event.view.document.sgp[IFRAME_ZOOM_IMAGE_FN_NAME]);
 		modal.replaceChildren(img);
-		console.log("SpeedGraderPlus: showing modal: " + modal);
+		console.log(`SpeedGraderPlus: showing modal: ${modal}`);
 		event.view.document.body.style.overflow = "hidden";
 		modal.style.display = "block";
 	}
@@ -236,11 +236,11 @@ globalThis.sgp = (function(topDoc, config){
 					if (questionId && questionId.id) {
 						let result = true;
 						if (questionId.exists) {
-							result &&= Boolean(doc.getElementById("question_" + questionId.exists));
+							result &&= Boolean(doc.getElementById(`question_${questionId.exists}`));
 						}
 						if (questionId.studentIdFn) {
 							let studentId = getCurrentStudentId();
-							console.log("SpeedGraderPlus: current student ID: " + studentId);
+							console.log(`SpeedGraderPlus: current student ID: ${studentId}`);
 							switch (typeof questionId.studentIdFn) {
 								case "string":
 									switch (questionId.studentIdFn) {
@@ -262,15 +262,15 @@ globalThis.sgp = (function(topDoc, config){
 							}
 						}
 						if (result) {
-							css += "div#question_" + questionId.id + ", ";
+							css += `div#question_${questionId.id}, `;
 						}
 					}
 				}
 				else if (questionId) {
-					css += "div#question_" + questionId + ", ";
+					css += `div#question_${questionId}, `;
 				}
 			}
-			css = css.slice(0,-2) + " { display: block; } ";
+			css = `${css.slice(0,-2)} { display: block; } `;
 		}
 
 		// hide question text
@@ -283,7 +283,7 @@ globalThis.sgp = (function(topDoc, config){
 			css += "div.quiz_comment { display: none; } ";
 		}
 
-		console.log("SpeedGraderPlus: applying styles: " + css);
+		console.log(`SpeedGraderPlus: applying styles: ${css}`);
 
 		getIframeStyles(doc).textContent = css;
 

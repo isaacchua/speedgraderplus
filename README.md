@@ -31,6 +31,7 @@ let sgpConfig = {
 			assignmentId: 0,
 			expandImages: true,
 			showQuestionIds: true,
+			autosaveScores: true,
 			profiles: [
 				{
 					name: "Profile",
@@ -70,6 +71,7 @@ assignments: [
 		assignmentId: 0,
 		expandImages: true,
 		showQuestionIds: true,
+		autosaveScores: true,
 		profiles: [ ... ]
 	},
 	...
@@ -91,6 +93,10 @@ Set `expandImages` to `true` to enable the feature to expand images in submitted
 #### Show Question IDs
 
 Set `showQuestionIds` to `true` to show the Question ID on the header of every question; `false` otherwise.
+
+#### Autosave Scores
+
+Set `autosaveScores` to `true` to autosave scores after changing them; `false` otherwise.
 
 #### Profiles
 
@@ -185,6 +191,13 @@ Set `hideQuizComments` to `true` to hide quiz comments; `false` shows them.
 You can change the configuration by setting `sgp.config` with a new configuration object on the Browser Console, and then running the `sgp.reapply()` function to apply the changes.
 
 ## Versions
+
+### v2.3.0 (2024-06-05)
+- Added feature to autosave scores.
+- Improved performance and reliability of starting up SpeedGraderPlus.
+- Fixed issue where SpeedGraderPlus stops working when scores are submitted by pressing Enter/Return.
+- Fixed cases where question IDs would not show when enabled.
+- Fixed erroneously-saved blank images that blocked other images from being zoomed in.
 
 ### v2.2.0 (2023-12-11)
 - Integrated expand comments CSS into SpeedGraderPlus.

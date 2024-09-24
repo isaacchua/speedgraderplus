@@ -23,7 +23,7 @@ let sgpConfig = {
 		}
 	],
 };
-globalThis.sgp = (function(config){
+globalThis.sgp = (function(topDoc, config){
 	const VERSION = "2.2.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
@@ -54,7 +54,7 @@ globalThis.sgp = (function(config){
 
 	function doFindIframe (attempts = 0) {
 		try {
-			let iframe = document.getElementById("speedgrader_iframe");
+			let iframe = topDoc.getElementById("speedgrader_iframe");
 			if (iframe) {
 				find = false;
 				console.log("SpeedGraderPlus: speedgrader_iframe found");
@@ -326,7 +326,7 @@ globalThis.sgp = (function(config){
 	}
 
 	function getCurrentStudentId () {
-		let src = document.getElementById("avatar")?.children[0]?.src;
+		let src = topDoc.getElementById("avatar")?.children[0]?.src;
 		if (!src) return null;
 		let match = STUDENT_ID_RE.exec(src);
 		if (!match) return null;
@@ -336,7 +336,7 @@ globalThis.sgp = (function(config){
 	}
 	
 	function doBindStudents (bind, attempts = 0) {
-		let students = document.querySelectorAll("ul#students_selectmenu-menu a");
+		let students = topDoc.querySelectorAll("ul#students_selectmenu-menu a");
 		if (students.length) {
 			if (bind) {
 				students.forEach(student => student.addEventListener("click", startFindIframe));
@@ -366,20 +366,20 @@ globalThis.sgp = (function(config){
 	}
 
 	function createProfileSelector () {
-		let collection = document.getElementsByClassName("subheadContent--flex-end");
+		let collection = topDoc.getElementsByClassName("subheadContent--flex-end");
 		if (collection.length > 0) {
-			let div = document.createElement("div");
+			let div = topDoc.createElement("div");
 			div.style.paddingRight = "12px";
-			let label = document.createElement("label");
+			let label = topDoc.createElement("label");
 			label.innerText = "Profile:";
 			label.htmlFor = PROFILE_SELECTOR_ID;
-			let select = document.createElement("select");
+			let select = topDoc.createElement("select");
 			select.id = PROFILE_SELECTOR_ID;
 			select.style.padding = "0";
 			select.style.margin = "0";
 			select.style.height = "30px";
 			select.style.width = "auto";
-			let option = document.createElement("option"); // default option
+			let option = topDoc.createElement("option"); // default option
 			option.value = "";
 			option.innerText = "(none)";
 			select.append(option);
@@ -399,7 +399,7 @@ globalThis.sgp = (function(config){
 			console.error("SpeedGraderPlus: assignment not provided to retrieve profiles");
 			return DEFAULT_PROFILE;
 		}
-		let profileSelector = document.getElementById(PROFILE_SELECTOR_ID) ?? createProfileSelector();
+		let profileSelector = topDoc.getElementById(PROFILE_SELECTOR_ID) ?? createProfileSelector();
 		if (profileSelector) {
 			let profileValue = profileSelector.value;
 			let profiles = assignment.profiles;
@@ -418,7 +418,7 @@ globalThis.sgp = (function(config){
 			profiles.forEach(profile => {
 				let option = children.find(child => child.value === profile.name && child.innerText === profile.name);
 				if (!option) {
-					option = document.createElement("option");
+					option = topDoc.createElement("option");
 					option.value = profile.name;
 					option.innerText = profile.name;
 				}
@@ -443,37 +443,37 @@ globalThis.sgp = (function(config){
 	}
 
 	function unapplyStyles () {
-		document.getElementById(STYLE_ID)?.remove();
+		topDoc.getElementById(STYLE_ID)?.remove();
 	}
 
 	function getStyles () {
-		let style = document.getElementById(STYLE_ID);
+		let style = topDoc.getElementById(STYLE_ID);
 		if (!style) {
-			style = document.createElement("style");
+			style = topDoc.createElement("style");
 			style.id = STYLE_ID;
-			document.head.append(style);
+			topDoc.head.append(style);
 		}
 		return style;
 	}
 
 	function register () {
 		console.log("SpeedGraderPlus: registering plug-in");
-		document.getElementById("prev-student-button").addEventListener("click", startFindIframe);
-		document.getElementById("next-student-button").addEventListener("click", startFindIframe);
+		topDoc.getElementById("prev-student-button").addEventListener("click", startFindIframe);
+		topDoc.getElementById("next-student-button").addEventListener("click", startFindIframe);
 		bindStudents();
 		applyStyles();
 	}
 
 	function deregister () {
 		console.log("SpeedGraderPlus: deregistering plug-in");
-		document.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
-		document.getElementById("next-student-button").removeEventListener("click", startFindIframe);
+		topDoc.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
+		topDoc.getElementById("next-student-button").removeEventListener("click", startFindIframe);
 		unbindStudents();
 		unapplyStyles();
 	}
 
 	function initialize () {
-		let url = new URL(document.location.href);
+		let url = new URL(topDoc.location.href);
 		if (url.hostname.endsWith("instructure.com") && url.pathname.endsWith("speed_grader")) {
 			startFindIframe();
 		}
@@ -490,4 +490,4 @@ globalThis.sgp = (function(config){
 		initialize: initialize,
 		config: config
 	};
-})(sgpConfig);
+})(globalThis.document, sgpConfig);

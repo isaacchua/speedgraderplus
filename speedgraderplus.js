@@ -35,7 +35,7 @@ globalThis.sgp = (function(topDoc, config){
 	};
 	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; } ";
 	const FIND_IFRAME_ATTEMPTS = 300;
-	const IFRAME_EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
+	const IFRAME_EXPAND_IMAGE_HANDLER = "expandImageHandler";
 	const IFRAME_EXPAND_IMAGE_CSS = ".answers img:not([src]) { display: none; } ";
 	const IFRAME_EXPAND_IMAGE_SELECTOR = ".answers img[src]";
 	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
@@ -45,7 +45,7 @@ globalThis.sgp = (function(topDoc, config){
 	const IFRAME_QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
 	const IFRAME_SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
 	const IFRAME_STYLE_ID = "sgp_styles";
-	const IFRAME_ZOOM_IMAGE_FN_NAME = "sgpZoomImage";
+	const IFRAME_ZOOM_IMAGE_HANDLER = "zoomImageHandler";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const PROFILE_SELECTOR_CSS = "#sgp_profiles { padding: 0; margin: 0; height: 30px; width: auto } ";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
@@ -126,18 +126,18 @@ globalThis.sgp = (function(topDoc, config){
 
 	function applyExpandImages (doc) {
 		// must add event listeners to doc or it will not work for the next student
-		doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME] = event => handleExpandImage(event);
-		doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME] = event => handleZoomImage(event);
+		doc.sgp[IFRAME_EXPAND_IMAGE_HANDLER] = event => handleExpandImage(event);
+		doc.sgp[IFRAME_ZOOM_IMAGE_HANDLER] = event => handleZoomImage(event);
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
-			.forEach(element => element.addEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME]));
+			.forEach(element => element.addEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_HANDLER]));
 		console.log("SpeedGraderPlus: applied expandImages");
 	}
 
 	function unapplyExpandImages (doc) {
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
-			.forEach(element => element.removeEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME]));
-		delete doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME];
-		delete doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME];
+			.forEach(element => element.removeEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_HANDLER]));
+		delete doc.sgp[IFRAME_EXPAND_IMAGE_HANDLER];
+		delete doc.sgp[IFRAME_ZOOM_IMAGE_HANDLER];
 		doc.getElementById(IFRAME_MODAL_ID)?.remove();
 		console.log("SpeedGraderPlus: unapplied expandImages");
 	}
@@ -148,7 +148,7 @@ globalThis.sgp = (function(topDoc, config){
 		let modal = getIframeModal(event.view.document);
 		img.removeAttribute("class");
 		img.removeAttribute("style");
-		img.addEventListener("click", event.view.document.sgp[IFRAME_ZOOM_IMAGE_FN_NAME]);
+		img.addEventListener("click", event.view.document.sgp[IFRAME_ZOOM_IMAGE_HANDLER]);
 		modal.replaceChildren(img);
 		console.log(`SpeedGraderPlus: showing modal: ${modal}`);
 		event.view.document.body.style.overflow = "hidden";

@@ -52,6 +52,10 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_top_styles";
 	const SUBMIT_ATTEMPTS = 20;
+	const TOOLBAR_CONTAINER_CLASS = "sgp_container";
+	const TOOLBAR_CONTAINER_PROFILE_SELECTOR_ID = "sgp_toolbar_profiles";
+	const TOOLBAR_CSS = "#sgp_toolbar { display: flex; align-items: center; flex-wrap: nowrap; padding-right: 12px; } ";
+	const TOOLBAR_ID = "sgp_toolbar";
 	let observer;
 
 	function findAssignment (iframe) {
@@ -349,44 +353,33 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		findAssignment(topDoc.getElementById("speedgrader_iframe"));
 	}
 
-	function createProfileSelector () {
-		let collection = topDoc.getElementsByClassName("subheadContent--flex-end");
-		if (collection.length > 0) {
-			let div = topDoc.createElement("div");
-			div.style.paddingRight = "12px";
+	function getProfileSelector () {
+		let selector = topDoc.getElementById(PROFILE_SELECTOR_ID);
+		if (!selector) {
 			let label = topDoc.createElement("label");
 			label.innerText = "Profile:";
 			label.htmlFor = PROFILE_SELECTOR_ID;
-			let select = topDoc.createElement("select");
-			select.id = PROFILE_SELECTOR_ID;
+			selector = topDoc.createElement("select");
+			selector.id = PROFILE_SELECTOR_ID;
+			selector.addEventListener("change", handleProfileChange);
 			let option = topDoc.createElement("option"); // default option
 			option.value = "";
 			option.innerText = "(none)";
-			select.append(option);
-			div.append(label, " ", select);
-			collection[0].prepend(div);
-			select.addEventListener("change", handleProfileChange);
-			return select;
+			selector.append(option);
+			getToolbarContainerProfileSelector().append(label, " ", selector);
 		}
-		else {
-			console.error("SpeedGraderPlus: unable to find header toolbar to add selector");
-			return null;
-		}
+		return selector;
 	}
 
 	function getProfile (assignment) {
-		if (!assignment) {
-			console.error("SpeedGraderPlus: assignment not provided to retrieve profiles");
-			return DEFAULT_PROFILE;
-		}
-		let profileSelector = topDoc.getElementById(PROFILE_SELECTOR_ID) ?? createProfileSelector();
-		if (profileSelector) {
-			let profileValue = profileSelector.value;
+		if (assignment) {
 			let profiles = assignment.profiles;
 			if (!Array.isArray(profiles)) {
 				console.warn("SpeedGraderPlus: profiles not configured for assignment");
 				profiles = [];
 			}
+			let profileSelector = getProfileSelector();
+			let profileValue = profileSelector.value;
 			let profile = profiles.find(profile => profile.name === profileValue);
 			if (!profile) {
 				console.log("SpeedGraderPlus: previous profile not found, using default");
@@ -408,13 +401,15 @@ globalThis.sgp = (function(topWin, topDoc, config){
 			return profile;
 		}
 		else {
-			console.error("SpeedGraderPlus: no profile selector available");
+			console.error("SpeedGraderPlus: assignment not provided to retrieve profiles");
 			return DEFAULT_PROFILE;
 		}
 	}
 
 	function applyStyles () {
-		let css = PROFILE_SELECTOR_CSS;
+		let css =
+			TOOLBAR_CSS +
+			PROFILE_SELECTOR_CSS;
 		if (config.expandComments) {
 			css += EXPAND_COMMENTS_CSS;
 		}
@@ -435,12 +430,48 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		return style;
 	}
 
+	function addToolbar () {
+		getToolbar();
+		getToolbarContainerProfileSelector();
+	}
+
+	function removeToolbar () {
+		topDoc.getElementById(TOOLBAR_ID)?.remove();
+	}
+
+	function getToolbarContainerProfileSelector () {
+		let container = topDoc.getElementById(TOOLBAR_CONTAINER_PROFILE_SELECTOR_ID);
+		if (!container) {
+			container = topDoc.createElement("div");
+			container.id = TOOLBAR_CONTAINER_PROFILE_SELECTOR_ID;
+			container.className = TOOLBAR_CONTAINER_CLASS;
+			getToolbar().append(container);
+		}
+		return container;
+	}
+
+	function getToolbar () {
+		let toolbar = topDoc.getElementById(TOOLBAR_ID);
+		if (!toolbar) {
+			toolbar = topDoc.createElement("div");
+			toolbar.id = TOOLBAR_ID;
+
+			let header, left, right;
+			header = topDoc.getElementById("gradebook_header");
+			[left, right] = header.children;
+			right.prepend(toolbar);
+		}
+		return toolbar;
+	}
+
 	function register () {
 		applyStyles();
+		addToolbar();
 		console.log("SpeedGraderPlus: plug-in registered");
 	}
 
 	function deregister () {
+		removeToolbar();
 		unapplyStyles();
 		console.log("SpeedGraderPlus: plug-in deregistered");
 	}

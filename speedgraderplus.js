@@ -122,23 +122,19 @@ globalThis.sgp = (function(topDoc, config){
 	}
 
 	function applyExpandImages (doc) {
-			// must add event listeners to doc or it will not work for the next student
-		if (!doc[IFRAME_EXPAND_IMAGE_FN_NAME]) {
-			doc[IFRAME_EXPAND_IMAGE_FN_NAME] = event => handleExpandImage(event);
-		}
-		if (!doc[IFRAME_ZOOM_IMAGE_FN_NAME]) {
-			doc[IFRAME_ZOOM_IMAGE_FN_NAME] = event => handleZoomImage(event);
-		}
+		// must add event listeners to doc or it will not work for the next student
+		doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME] = event => handleExpandImage(event);
+		doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME] = event => handleZoomImage(event);
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
-			.forEach(element => element.addEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
+			.forEach(element => element.addEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME]));
 		console.log("SpeedGraderPlus: registered expand image listeners");
 	}
 
 	function unapplyExpandImages (doc) {
 		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
-			.forEach(element => element.removeEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
-		delete doc[IFRAME_EXPAND_IMAGE_FN_NAME];
-		delete doc[IFRAME_ZOOM_IMAGE_FN_NAME];
+			.forEach(element => element.removeEventListener("click", doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME]));
+		delete doc.sgp[IFRAME_EXPAND_IMAGE_FN_NAME];
+		delete doc.sgp[IFRAME_ZOOM_IMAGE_FN_NAME];
 		doc.getElementById(IFRAME_MODAL_ID)?.remove();
 		console.log("SpeedGraderPlus: deregistered expand image listeners");
 	}
@@ -154,7 +150,7 @@ globalThis.sgp = (function(topDoc, config){
 		img.style.margin = "2% auto";
 		img.style.padding = "0";
 		img.style.backgroundColor = "white";
-		img.addEventListener("click", event.view.document[IFRAME_ZOOM_IMAGE_FN_NAME]);
+		img.addEventListener("click", event.view.document.sgp[IFRAME_ZOOM_IMAGE_FN_NAME]);
 		modal.replaceChildren(img);
 		console.log("SpeedGraderPlus: showing modal: " + modal);
 		event.view.document.body.style.overflow = "hidden";
@@ -314,6 +310,8 @@ globalThis.sgp = (function(topDoc, config){
 	}
 
 	function registerIframe (doc, assignment) {
+		doc.sgp = {}; // object in the iframe document to store SpeedGraderPlus data
+		assignment.autoSaveScores ? applyAutoSaveScores(doc) : unapplyAutoSaveScores(doc);
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
@@ -323,6 +321,7 @@ globalThis.sgp = (function(topDoc, config){
 		unapplyExpandImages(doc);
 		unapplyShowQuestionIds(doc);
 		unapplyIframeStyles(doc);
+		delete doc.sgp;
 	}
 
 	function getCurrentStudentId () {

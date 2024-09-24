@@ -196,24 +196,19 @@ globalThis.sgp = (function(topDoc, config){
 	}
 
 	function applyShowQuestionIds(doc) {
-		if (!doc.querySelector("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)) { // check that ids do not already exist
-			console.log("SpeedGraderPlus: showing question ids");
-			Array.from(doc.querySelectorAll(".question > .header:has(.name)"))
-				.forEach(element => {
-					let span = doc.createElement("span");
-					span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
-					span.textContent = " (".concat(element.parentElement.id.split("_")[1],")");
-					element.querySelector(".name").append(span);
-				})
-		}
-		else {
-			console.log("SpeedGraderPlus: question ids are already shown");
-		}
+		Array.from(doc.querySelectorAll(`.question .name:not(:has(${IFRAME_QUESTION_ID_SELECTOR_CLASS}))`))
+			.forEach(element => {
+				let span = doc.createElement("span");
+				span.className = IFRAME_QUESTION_ID_SELECTOR_CLASS;
+				span.textContent = ` (${element.parentElement.id.split("_")[1]})`;
+				element.append(span);
+			})
+		console.log("SpeedGraderPlus: applied showQuestionIds");
 	}
 
 	function unapplyShowQuestionIds(doc) {
-		Array.from(doc.querySelectorAll("."+IFRAME_QUESTION_ID_SELECTOR_CLASS)).forEach(element => element.remove());
-		console.log("SpeedGraderPlus: question ids removed");
+		Array.from(doc.querySelectorAll(`.${IFRAME_QUESTION_ID_SELECTOR_CLASS}`)).forEach(element => element.remove());
+		console.log("SpeedGraderPlus: unapplied showQuestionIds");
 	}
 	
 	function applyIframeStyles (doc, assignment) {

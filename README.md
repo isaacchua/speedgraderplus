@@ -30,6 +30,8 @@ let sgpConfig = {
 	assignments: [
 		{
 			assignmentId: 0,
+			expandImages: true,
+			showQuestionIds: true,
 			profiles: [
 				{
 					name: "Profile",
@@ -63,6 +65,8 @@ Set `enabled` to `true` if you want to use SpeedGraderPlus.js; `false` otherwise
 assignments: [
 	{
 		assignmentId: 0,
+		expandImages: true,
+		showQuestionIds: true,
 		profiles: [ ... ]
 	},
 	...
@@ -76,6 +80,14 @@ SpeedGraderPlus.js will only work on the specified Assignment ID under the `assi
 ![How to find the Assignment ID](img/assignmentid.png)
 
 > **NOTE:** This is not the same as the Quiz ID, and the Quiz ID should not be used.
+
+#### Expand Images
+
+Set `expandImages` to `true` to enable the feature to expand images in submitted answers when clicked, and further zoom in if the image is clicked. Set to `false` otherwise.
+
+#### Show Question IDs
+
+Set `showQuestionIds` to `true` to show the Question ID on the header of every question; `false` otherwise.
 
 #### Profiles
 
@@ -128,6 +140,7 @@ The Browser Console will appear with the "header" line selected. Then: (3) look 
 Alternatively, to reveal all the Question IDs, edit the Assignment or Quiz, and enter the following piece of code into the Browser Console:
 
 ```
+document.head.innerHTML+="<style>.question .header{display:block!important;}</style>";
 Array.from(document.querySelectorAll(".question>.header:has(.name)")).map(element=>element.querySelector(".name").innerHTML+=" (".concat(element.parentElement.id.split("_")[1],")"));
 ```
 
@@ -169,6 +182,12 @@ Set `hideQuizComments` to `true` to hide quiz comments; `false` shows them.
 You can change the configuration by setting `sgp.config` with a new configuration object on the Browser Console, and then running the `sgp.reapply()` function to apply the changes.
 
 ## Versions
+
+### v2.1.0 (2023-12-10)
+- Added option to show Question IDs on assignments.
+- Added feature to expand and zoom in on images submitted on answers.
+- Added sample code on this README for revealing Question IDs.
+- Updated README.
 
 ### v2.0.1 (2023-12-09)
 - Optimized the code.

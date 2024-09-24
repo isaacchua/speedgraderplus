@@ -472,7 +472,7 @@ globalThis.sgp = (function(config){
 
 	return {
 		version: VERSION,
-		reapply: initialize,
-		config: sgpConfig
+		initialize: initialize,
+		config: config
 	};
 })(sgpConfig);

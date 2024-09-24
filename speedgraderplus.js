@@ -1,6 +1,7 @@
 // SpeedGraderPlus.js v2.1.0 (2023-12-10) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus, false to show everything
+	expandComments: true, // true to expand comments box; false to leave unchanged
 	assignments: [
 		{
 			assignmentId: 0, // the Assignment ID
@@ -32,6 +33,7 @@ globalThis.sgp = (function(config){
 		hideQuestionText: false,
 		hideQuizComments: false
 	};
+	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; }";
 	const FIND_IFRAME_ATTEMPTS = 300;
 	const IFRAME_EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
 	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
@@ -44,6 +46,7 @@ globalThis.sgp = (function(config){
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
+	const STYLE_ID = "sgp_top_styles";
 	let find = false;
 	let timeoutId;
 
@@ -413,16 +416,39 @@ globalThis.sgp = (function(config){
 		}
 	}
 
+	function applyStyles () {
+		if (config.expandComments) {
+			getStyles().textContent = EXPAND_COMMENTS_CSS;
+		}
+		else {
+			getStyles().textContent = "";
+		}
+	}
+
+	function getStyles () {
+		let style = document.getElementById(STYLE_ID);
+		if (!style) {
+			style = document.createElement("style");
+			style.id = STYLE_ID;
+			document.head.append(style);
+		}
+		return style;
+	}
+
 	function register () {
+		console.log("SpeedGraderPlus: registering plug-in");
 		document.getElementById("prev-student-button").addEventListener("click", startFindIframe);
 		document.getElementById("next-student-button").addEventListener("click", startFindIframe);
 		bindStudents();
+		applyStyles();
 	}
 
 	function deregister (doc) {
+		console.log("SpeedGraderPlus: deregistering plug-in");
 		document.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
 		document.getElementById("next-student-button").removeEventListener("click", startFindIframe);
 		unbindStudents();
+		document.getElementById(STYLE_ID)?.remove();
 		if (doc) {
 			deregisterExpandImageListeners(doc);
 			hideQuestionIds(doc);

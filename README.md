@@ -104,7 +104,7 @@ Set `hideQuestions` to `true` to hide all questions except those specified in `q
 
 ##### Question IDs
 
-`questionIds` is an array of Question IDs: numeric or string plain Question IDs and/or objects that specify the conditions that need to be met to show the Question.
+`questionIds` is an array of Question IDs: numeric or string Plain Question IDs and/or Conditional Question ID objects that specify the conditions that need to be met to show the Question.
 
 ```
 questionIds: [
@@ -115,7 +115,9 @@ questionIds: [
 ]
 ```
 
-A plain Question ID can be specified as a numeric or string value. You can find this by editing the Assignment or Quiz, and: (1) right-clicking on the header of the Question (note: if the question is part of a group, you have to right-click the question in the group and not the group); and (2) selecting "Inspect".
+###### Plain Question ID
+
+A Plain Question ID can be specified as a numeric or string value. You can find this by editing the Assignment or Quiz, and: (1) right-clicking on the header of the Question (note: if the question is part of a group, you have to right-click the question in the group and not the group); and (2) selecting "Inspect".
 
 ![How to find the Question ID 1](img/questionid1.png)
 
@@ -123,7 +125,17 @@ The Browser Console will appear with the "header" line selected. Then: (3) look 
 
 ![How to find the Question ID 2](img/questionid2.png)
 
-A conditional Question ID object is configured as follows:
+Alternatively, to reveal all the Question IDs, edit the Assignment or Quiz, and enter the following piece of code into the Browser Console:
+
+```
+Array.from(document.querySelectorAll(".question>.header:has(.name)")).map(element=>element.querySelector(".name").innerHTML+=" (".concat(element.parentElement.id.split("_")[1],")"));
+```
+
+This code will append the Question ID to the header of every Question.
+
+###### Conditional Question ID
+
+A Conditional Question ID object is configured as follows:
 
 ```
 {

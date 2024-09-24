@@ -28,6 +28,8 @@ globalThis.sgp = (function(config){
 		hideQuizComments: false
 	};
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
+	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
+	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_styles";
 	let defaultOption;
@@ -127,6 +129,38 @@ globalThis.sgp = (function(config){
 				// show all selected question blocks
 				for (const questionId of profile.questionIds) {
 					if (typeof questionId === "object") {
+						if (questionId !== null && questionId.id) {
+							let result = true;
+							if (questionId.exists) {
+								result &&= Boolean(doc.getElementById("question_" + questionId.exists));
+							}
+							if (questionId.studentIdFn) {
+								let studentId = getCurrentStudentId();
+								console.log("SpeedGraderPlus: current student ID: " + studentId);
+								switch (typeof questionId.studentIdFn) {
+									case "string":
+										switch (questionId.studentIdFn) {
+											case "odd":
+												result &&= STUDENT_ID_FN_ODD(studentId);
+												break;
+											case "even":
+												result &&= STUDENT_ID_FN_EVEN(studentId);
+												break;
+											default:
+												result = false;
+										}
+										break;
+									case "function":
+										result &&= Boolean(questionId.studentIdFn(studentId));
+										break;
+									default:
+										result = false;
+								}
+							}
+							if (result) {
+								css += "div#question_" + questionId.id + ", ";
+							}
+						}
 					}
 					else {
 						css += "div#question_" + questionId + ", ";

@@ -34,6 +34,7 @@ globalThis.sgp = (function(config){
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
 	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
+	const SHOW_HEADERS_CSS = "div.header { display: block !important; } ";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -159,6 +160,11 @@ globalThis.sgp = (function(config){
 	function applyStyles (doc, assignment) {
 		let profile = getProfile(assignment);
 		let css = "";
+
+		// show headers if showing question ids
+		if (assignment.showQuestionIds) {
+			css += SHOW_HEADERS_CSS;
+		}
 
 		// hide all question blocks
 		if (profile.hideQuestions) {

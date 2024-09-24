@@ -27,6 +27,7 @@ globalThis.sgp = (function(config){
 		hideQuizComments: false
 	};
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
+	const PROFILE_SELECTOR_ID = "sgp_profile";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -214,9 +215,9 @@ globalThis.sgp = (function(config){
 			div.style.paddingRight = "12px";
 			let label = document.createElement("label");
 			label.innerText = "Profile:";
-			label.htmlFor = "profile";
+			label.htmlFor = PROFILE_SELECTOR_ID;
 			let select = document.createElement("select");
-			select.id = "profile";
+			select.id = PROFILE_SELECTOR_ID;
 			select.style.padding = "0";
 			select.style.margin = "0";
 			select.style.height = "30px";
@@ -227,31 +228,31 @@ globalThis.sgp = (function(config){
 			return select;
 		}
 		else {
-			console.log("SpeedGraderPlus: unable to find header toolbar to add selector");
+			console.error("SpeedGraderPlus: unable to find header toolbar to add selector");
 			return null;
 		}
 	}
 
 	function getProfile (assignment) {
 		if (assignment == null) {
-			console.log("SpeedGraderPlus: assignment not provided for profile");
+			console.error("SpeedGraderPlus: assignment not provided to retrieve profiles");
 			return DEFAULT_PROFILE;
 		}
-		let profileSelector = document.getElementById("profile") ?? createProfileSelector();
+		let profileSelector = document.getElementById(PROFILE_SELECTOR_ID) ?? createProfileSelector();
 		if (profileSelector === null) {
-			console.log("SpeedGraderPlus: no profile selector available");
+			console.error("SpeedGraderPlus: no profile selector available");
 			return DEFAULT_PROFILE;
 		}
 		else {
 			let profileValue = profileSelector.value;
 			let profiles = assignment.profiles;
 			if (!Array.isArray(profiles)) {
-				console.log("SpeedGraderPlus: profiles not configured for assignment");
+				console.warn("SpeedGraderPlus: profiles not configured for assignment");
 				profiles = [];
 			}
 			let profile = profiles.find(profile => profile.name === profileValue);
 			if (profile === undefined) {
-				console.log("SpeedGraderPlus: original profile not found");
+				console.log("SpeedGraderPlus: previous profile not found, using default");
 				profile = DEFAULT_PROFILE;
 				profileValue = "";
 			}

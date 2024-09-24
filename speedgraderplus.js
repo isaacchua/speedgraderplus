@@ -335,11 +335,19 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		topWin.setTimeout(findAssignment, 1000); // yield to let the iframe reload
 	}
 
+	function handleScoreEnter (event, data) {
+		if (event.keyCode === 13) { // Canvas uses submit() instead of requestSubmit(), so we have to catch this event too
+			handleSubmit(event, data);
+		}
+	}
+
 	function registerIframe (doc, assignment) {
 		let data = {}; // object in the iframe document to store SpeedGraderPlus data
 		data.submitHandler = event => handleSubmit(event, data);
 		data.form = doc.getElementById("update_history_form");
 		data.form.addEventListener("submit", data.submitHandler);
+		data.scoreEnterHandler = event => handleScoreEnter(event, data);
+		doc.querySelectorAll("input[id^='question_score_']").forEach(input => input.addEventListener("keyup", data.scoreEnterHandler));
 		doc.sgp = data;
 
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
@@ -351,6 +359,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 
 	function deregisterIframe (doc) {
 		doc.sgp.form.removeEventListener("submit", doc.sgp.submitHandler);
+		doc.querySelectorAll("input[id^='question_score_']").forEach(input => input.removeEventListener("keyup", doc.sgp.scoreEnterHandler));
 
 		unapplyExpandImages(doc);
 		unapplyShowQuestionIds(doc);

@@ -148,7 +148,7 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	function handleZoomImage (event) {
 		event.preventDefault();
 		let img = event.target;
-		let scale = img.dataset.sgpScale && Number.parseFloat(img.dataset.sgpScale) || 1;
+		let scale = (img.dataset.sgpScale && Number.parseFloat(img.dataset.sgpScale)) ?? 1;
 		scale = scale >= 4 ? 1 : scale * 2;
 		img.dataset.sgpScale = scale;
 		scale *= 96;

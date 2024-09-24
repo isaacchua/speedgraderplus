@@ -1,4 +1,4 @@
-// SpeedGraderPlus.js v2.2.0 (2023-12-11) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.3.0 (2024-06-05) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus; false to show everything
 	expandComments: true, // true to expand comments box; false to leave unchanged

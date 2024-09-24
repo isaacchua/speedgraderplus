@@ -1,4 +1,4 @@
-// SpeedGraderPlus.js v2.0.0 (2023-12-08) - https://github.com/isaacchua/speedgraderplus
+// SpeedGraderPlus.js v2.0.1 (2023-12-09) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus, false to show everything
 	assignments: [
@@ -21,7 +21,7 @@ let sgpConfig = {
 	],
 };
 globalThis.sgp = (function(config){
-	const VERSION = "2.0.0";
+	const VERSION = "2.0.1";
 	const BIND_STUDENTS_ATTEMPTS = 200;
 	const DEFAULT_PROFILE = {
 		name: "(none)",
@@ -31,7 +31,7 @@ globalThis.sgp = (function(config){
 		hideQuizComments: false
 	};
 	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
-	const PROFILE_SELECTOR_ID = "sgp_profile";
+	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
@@ -51,26 +51,22 @@ globalThis.sgp = (function(config){
 		}
 		else {
 			for (const student of students) {
-				student.addEventListener("click", handleApplyEvent);
+				student.addEventListener("click", refresh);
 			}
 		}
 	}
 
 	function getCurrentStudentId () {
-		let avatar = document.getElementById("avatar");
-		if (avatar == null) return null;
-		let img = avatar.children[0];
-		if (img == null) return null;
-		let src = img.src;
-		if (src == null) return null;
+		let src = document.getElementById("avatar")?.children[0]?.src;
+		if (!src) return null;
 		let match = STUDENT_ID_RE.exec(src);
-		if (match == null) return null;
+		if (!match) return null;
 		let id = Number.parseInt(match[1]);
 		if (Number.isNaN(id)) return null;
 		return id;
 	}
 	
-	function handleApplyEvent () {
+	function refresh () {
 		find = true;
 	}
 
@@ -78,13 +74,13 @@ globalThis.sgp = (function(config){
 		try {
 			if (find) {
 				let iframe = document.getElementById("speedgrader_iframe");
-				if (iframe !== null) {
+				if (iframe) {
 					find = false;
 					console.log("SpeedGraderPlus: speedgrader_iframe found");
 					if (config && config.enabled && config.assignments) { // check if configuration exists / is enabled
 						let iframeSrc = iframe.getAttribute("src");
 						let assignment = config.assignments.find(assignment => iframeSrc.includes("assignments/" + assignment.assignmentId));
-						if (assignment !== undefined) {
+						if (assignment) {
 							console.log("SpeedGraderPlus: assignment " + assignment.assignmentId + " found");
 							iframe.contentWindow.addEventListener("load", // listen regardless, because iframe might reload
 								event => handleIframeLoadEvent(event, assignment)); // wrap the event handler to pass the assignment
@@ -98,9 +94,9 @@ globalThis.sgp = (function(config){
 					}
 					else { // no configuration / not enabled
 						console.log("SpeedGraderPlus: no config or not enabled");
-						let doc = iframe.contentDocument;
-						if (doc.getElementById(STYLE_ID)) { // check whether styles exist
-							getStyles(doc).textContent = ""; // clear any applied styles
+						let styles = iframe.contentDocument?.getElementById(STYLE_ID);
+						if (styles) { // check whether styles exist
+							styles.textContent = ""; // clear any applied styles
 						}
 					}
 				}
@@ -141,7 +137,7 @@ globalThis.sgp = (function(config){
 			// show all selected question blocks
 			for (const questionId of profile.questionIds) {
 				if (typeof questionId === "object") {
-					if (questionId !== null && questionId.id) {
+					if (questionId && questionId.id) {
 						let result = true;
 						if (questionId.exists) {
 							result &&= Boolean(doc.getElementById("question_" + questionId.exists));
@@ -174,7 +170,7 @@ globalThis.sgp = (function(config){
 						}
 					}
 				}
-				else {
+				else if (questionId) {
 					css += "div#question_" + questionId + ", ";
 				}
 			}
@@ -200,7 +196,7 @@ globalThis.sgp = (function(config){
 
 	function getStyles (doc) {
 		let style = doc.getElementById(STYLE_ID);
-		if (style === null) {
+		if (!style) {
 			style = doc.createElement("style");
 			style.id = STYLE_ID;
 			doc.head.appendChild(style);
@@ -230,7 +226,7 @@ globalThis.sgp = (function(config){
 			select.style.width = "auto";
 			div.append(label, " ", select);
 			collection[0].prepend(div);
-			select.addEventListener("change", handleApplyEvent);
+			select.addEventListener("change", refresh);
 			return select;
 		}
 		else {
@@ -240,16 +236,12 @@ globalThis.sgp = (function(config){
 	}
 
 	function getProfile (assignment) {
-		if (assignment == null) {
+		if (!assignment) {
 			console.error("SpeedGraderPlus: assignment not provided to retrieve profiles");
 			return DEFAULT_PROFILE;
 		}
 		let profileSelector = document.getElementById(PROFILE_SELECTOR_ID) ?? createProfileSelector();
-		if (profileSelector === null) {
-			console.error("SpeedGraderPlus: no profile selector available");
-			return DEFAULT_PROFILE;
-		}
-		else {
+		if (profileSelector) {
 			let profileValue = profileSelector.value;
 			let profiles = assignment.profiles;
 			if (!Array.isArray(profiles)) {
@@ -257,35 +249,43 @@ globalThis.sgp = (function(config){
 				profiles = [];
 			}
 			let profile = profiles.find(profile => profile.name === profileValue);
-			if (profile === undefined) {
+			if (!profile) {
 				console.log("SpeedGraderPlus: previous profile not found, using default");
 				profile = DEFAULT_PROFILE;
 				profileValue = "";
 			}
+			let children = [...profileSelector.children]; // pull out the children as an array for reuse
 			profileSelector.replaceChildren(defaultOption);
 			profiles.forEach(profile => {
-				let option = document.createElement("option");
-				option.value = profile.name;
-				option.innerText = profile.name;
+				let option = children.find(child => child.value === profile.name && child.innerText === profile.name);
+				if (!option) {
+					option = document.createElement("option");
+					option.value = profile.name;
+					option.innerText = profile.name;
+				}
 				profileSelector.append(option);
 			});
 			profileSelector.value = profileValue;
 			return profile;
+		}
+		else {
+			console.error("SpeedGraderPlus: no profile selector available");
+			return DEFAULT_PROFILE;
 		}
 	}
 
 	if (document.location.href.includes("speed_grader")) {
 		createDefaultOption();
 		console.log("SpeedGraderPlus: find iframe");
-		document.getElementById("prev-student-button").addEventListener("click", handleApplyEvent);
-		document.getElementById("next-student-button").addEventListener("click", handleApplyEvent);
+		document.getElementById("prev-student-button").addEventListener("click", refresh);
+		document.getElementById("next-student-button").addEventListener("click", refresh);
 		bindStudents();
 		setTimeout(findIframe, 200);
 	}
 
 	return {
 		version: VERSION,
-		reapply: handleApplyEvent,
+		reapply: refresh,
 		config: sgpConfig
 	};
 })(sgpConfig);

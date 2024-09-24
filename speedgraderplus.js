@@ -277,11 +277,9 @@ globalThis.sgp = (function(topWin, topDoc, config){
 			css += "div.quiz_comment { display: none; } ";
 		}
 
-		console.log(`SpeedGraderPlus: applying styles: ${css}`);
-
 		getIframeStyles(doc).textContent = css;
 
-		console.log("SpeedGraderPlus: all done");
+		console.log(`SpeedGraderPlus: applied styles: ${css}`);
 	}
 
 	function unapplyIframeStyles (doc) {
@@ -303,6 +301,8 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		applyIframeStyles(doc, assignment); // handles styles for all submodules
 		assignment.expandImages ? applyExpandImages(doc) : unapplyExpandImages(doc);
 		assignment.showQuestionIds ? applyShowQuestionIds(doc) : unapplyShowQuestionIds(doc);
+
+		console.log("SpeedGraderPlus: iframe registered");
 	}
 
 	function deregisterIframe (doc) {
@@ -310,6 +310,8 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		unapplyShowQuestionIds(doc);
 		unapplyIframeStyles(doc);
 		delete doc.sgp;
+
+		console.log("SpeedGraderPlus: iframe deregistered");
 	}
 
 	function getCurrentStudentId () {
@@ -443,15 +445,15 @@ globalThis.sgp = (function(topWin, topDoc, config){
 	}
 
 	function register () {
-		console.log("SpeedGraderPlus: registering plug-in");
 		applyStyles();
 		applyStudentListeners();
+		console.log("SpeedGraderPlus: plug-in registered");
 	}
 
 	function deregister () {
-		console.log("SpeedGraderPlus: deregistering plug-in");
 		unapplyStudentListeners();
 		unapplyStyles();
+		console.log("SpeedGraderPlus: plug-in deregistered");
 	}
 
 	function initialize () {

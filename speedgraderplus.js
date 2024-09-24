@@ -1,14 +1,16 @@
+// SpeedGraderPlus.js v1.2.0 (2023-11-12) - https://github.com/isaacchua/speedgraderplus
 let sgpConfig = {
 	enabled: true, // true to hide specified assignment parts, false to show everything
 	assignmentId: 0, // the assignment id
+	hideQuestions: true, // hide all questions except specified question ids
 	questionIds: [0], // the question ids to show; others will be hidden
 	hideQuestionText: true, // hides the text of the question
 	hideQuizComments: true // hides the quiz comments that follow the student's answers (not the comments panel)
 };
 globalThis.sgp = (function(config){
-	const VERSION = "1.1.0";
+	const VERSION = "1.2.0";
 	const BIND_STUDENTS_ATTEMPTS = 200;
-	const BASE_CSS = "div.display_question.question { display: none; } ";
+	const HIDE_QUESTIONS_CSS = "div.display_question.question { display: none; } ";
 	const STYLE_ID = "sgp_styles";
 	var find = true;
 	
@@ -78,17 +80,19 @@ globalThis.sgp = (function(config){
 	}
 	
 	function applyStyles (doc) {
-		var css;
+		var css = "";
 
 		if (config.enabled) {
 			// hide all question blocks
-			css = BASE_CSS;
-
-			// show all selected question blocks
-			for (const questionId of config.questionIds) {
-				css += "div#question_" + questionId + ", ";
+			if (config.hideQuestions) {
+				css += HIDE_QUESTIONS_CSS;
+	
+				// show all selected question blocks
+				for (const questionId of config.questionIds) {
+					css += "div#question_" + questionId + ", ";
+				}
+				css += ":not(*) { display: block; } ";
 			}
-			css += ":not(*) { display: block; } ";
 
 			// hide question text
 			if (config.hideQuestionText) {

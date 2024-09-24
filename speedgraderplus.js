@@ -36,6 +36,8 @@ globalThis.sgp = (function(config){
 	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; }";
 	const FIND_IFRAME_ATTEMPTS = 300;
 	const IFRAME_EXPAND_IMAGE_FN_NAME = "sgpExpandImage";
+	const IFRAME_EXPAND_IMAGE_HIDE_BLANK_IMAGES_CSS = ".answers img:not([src]) { display: none; }";
+	const IFRAME_EXPAND_IMAGE_SELECTOR = ".answers img[src]";
 	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
 	const IFRAME_MODAL_ID = "sgp_modal";
 	const IFRAME_QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
@@ -129,14 +131,14 @@ globalThis.sgp = (function(config){
 			if (!doc[IFRAME_ZOOM_IMAGE_FN_NAME]) {
 				doc[IFRAME_ZOOM_IMAGE_FN_NAME] = event => zoomImage(event);
 			}
-			Array.from(doc.querySelectorAll(".answers img"))
+			Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
 				.forEach(element => element.addEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
 			console.log("SpeedGraderPlus: registered expand image listeners");
 		}
 	}
 
 	function deregisterExpandImageListeners (doc) {
-		Array.from(doc.querySelectorAll(".answers img"))
+		Array.from(doc.querySelectorAll(IFRAME_EXPAND_IMAGE_SELECTOR))
 			.forEach(element => element.removeEventListener("click", doc[IFRAME_EXPAND_IMAGE_FN_NAME]));
 		delete doc[IFRAME_EXPAND_IMAGE_FN_NAME];
 		delete doc[IFRAME_ZOOM_IMAGE_FN_NAME];
@@ -228,6 +230,12 @@ globalThis.sgp = (function(config){
 	function applyIframeStyles (doc, assignment) {
 		let profile = getProfile(assignment);
 		let css = "";
+
+		// hide blank images, which result from Canvas editor saving loading screens
+		// these blank images could block functionality
+		if (assignment.expandImages) {
+			css += IFRAME_EXPAND_IMAGE_HIDE_BLANK_IMAGES_CSS;
+		}
 
 		// show headers if showing question ids
 		if (assignment.showQuestionIds) {

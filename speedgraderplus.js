@@ -72,12 +72,14 @@ globalThis.sgp = (function(config){
 					}
 					else { // no assignment, nothing to do
 						console.warn("SpeedGraderPlus: no assignments found");
-						deregister(iframe.contentDocument);
+						deregister();
+						deregisterIframe(iframe.contentDocument);
 					}
 				}
 				else { // no configuration / not enabled
 					console.log("SpeedGraderPlus: no config provided, not enabled, or no assignments configured");
-					deregister(iframe.contentDocument);
+					deregister();
+					deregisterIframe(iframe.contentDocument);
 				}
 			}
 		}
@@ -115,9 +117,7 @@ globalThis.sgp = (function(config){
 		}
 		else {
 			console.log("SpeedGraderPlus: speedgrader_iframe loaded: " + doc.location.href);
-			registerExpandImageListeners(doc, assignment);
-			showQuestionIds(doc, assignment);
-			applyIframeStyles(doc, assignment);
+			registerIframe(doc, assignment);
 		}
 	}
 
@@ -321,6 +321,18 @@ globalThis.sgp = (function(config){
 		return style;
 	}
 
+	function registerIframe (doc, assignment) {
+		registerExpandImageListeners(doc, assignment);
+		showQuestionIds(doc, assignment);
+		applyIframeStyles(doc, assignment);
+	}
+
+	function deregisterIframe (doc) {
+		deregisterExpandImageListeners(doc);
+		hideQuestionIds(doc);
+		unapplyIframeStyles(doc);
+	}
+
 	function getCurrentStudentId () {
 		let src = document.getElementById("avatar")?.children[0]?.src;
 		if (!src) return null;
@@ -460,17 +472,12 @@ globalThis.sgp = (function(config){
 		applyStyles();
 	}
 
-	function deregister (doc) {
+	function deregister () {
 		console.log("SpeedGraderPlus: deregistering plug-in");
 		document.getElementById("prev-student-button").removeEventListener("click", startFindIframe);
 		document.getElementById("next-student-button").removeEventListener("click", startFindIframe);
 		unbindStudents();
 		unapplyStyles();
-		if (doc) {
-			deregisterExpandImageListeners(doc);
-			hideQuestionIds(doc);
-			unapplyIframeStyles(doc);
-		}
 	}
 
 	function initialize () {

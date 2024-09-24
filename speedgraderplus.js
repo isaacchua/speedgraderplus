@@ -106,7 +106,7 @@ globalThis.sgp = (function(topDoc, config){
 	function startFindIframe () {
 		console.log("SpeedGraderPlus: finding speedgrader_iframe");
 		find = true;
-		doFindIframe();
+		setTimeout(doFindIframe, 1); // yield to let other parts of the document / iframe load
 	}
 
 	function handleIframeLoadEvent (event, assignment) {

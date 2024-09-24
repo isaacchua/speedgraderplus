@@ -3,13 +3,17 @@ let sgpConfig = {
 	enabled: true, // true enable SpeedGraderPlus, false to show everything
 	assignments: [
 		{
-			assignmentId: 0, // the assignment id
+			assignmentId: 0, // the Assignment ID
 			profiles: [
 				{
-					name: "Profile", // name of the profile
-					hideQuestions: true, // hide all questions except specified question ids
-					questionIds: [0, {id: 1, exists: 2, studentIdFn: "odd"}], // the question ids to show; others will be hidden
-					hideQuestionText: true, // hides the text of the question
+					name: "Profile", // name of the Profile
+					hideQuestions: true, // hide all questions except specified Question IDs
+					questionIds: [ // the Question IDs to show; others will be hidden
+						0, // numeric plain Question ID
+						"1", // string plain Question ID
+						{id: 1, exists: 2, studentIdFn: "odd"} // object conditional Question ID
+					],
+					hideQuestionText: true, // hides the text of the Question
 					hideQuizComments: true // hides the quiz comments that follow the student's answers (not the comments panel)
 				}
 			]

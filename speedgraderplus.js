@@ -34,21 +34,21 @@ globalThis.sgp = (function(topWin, topDoc, config){
 		hideQuizComments: false
 	};
 	const EXPAND_COMMENTS_CSS = "#speed_grader_comment_textarea_mount_point textarea { min-height: 25lh; } ";
-	const IFRAME_EXPAND_IMAGE_HANDLER = "expandImageHandler";
 	const IFRAME_EXPAND_IMAGE_CSS = ".answers img:not([src]) { display: none; } ";
+	const IFRAME_EXPAND_IMAGE_HANDLER = "expandImageHandler";
 	const IFRAME_EXPAND_IMAGE_SELECTOR = ".answers img[src]";
 	const IFRAME_HIDE_QUESTIONS_CSS = ".question { display: none; } ";
-	const IFRAME_MODAL_ID = "sgp_modal";
 	const IFRAME_MODAL_CSS = "#sgp_modal { display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: auto; background-color: rgba(0,0,0,0.7) } ";
+	const IFRAME_MODAL_ID = "sgp_modal";
 	const IFRAME_MODAL_IMG_CSS = "#sgp_modal img { display: block; width: 96%; max-width: none; margin: 2% auto; padding: 0; background-color: white; } ";
 	const IFRAME_QUESTION_ID_SELECTOR_CLASS = "sgp_question_ids";
 	const IFRAME_SHOW_HEADERS_CSS = ".question .header { display: block !important; } ";
 	const IFRAME_STYLE_ID = "sgp_styles";
 	const IFRAME_ZOOM_IMAGE_HANDLER = "zoomImageHandler";
-	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const PROFILE_SELECTOR_CSS = "#sgp_profiles { padding: 0; margin: 0; height: 30px; width: auto } ";
-	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
+	const PROFILE_SELECTOR_ID = "sgp_profiles";
 	const STUDENT_ID_FN_EVEN = id => (id % 2) === 0;
+	const STUDENT_ID_FN_ODD = id => (id % 2) === 1;
 	const STUDENT_ID_RE = /\/users\/(\d+)-/;
 	const STYLE_ID = "sgp_top_styles";
 	const SUBMIT_ATTEMPTS = 20;
